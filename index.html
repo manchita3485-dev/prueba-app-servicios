@@ -1,1895 +1,1336 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Sistema de Control de Mantenimiento Vehicular</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
-  <style id="app-style">
-    /* Custom Styles */
-    :root {
-      --primary-color: #1e40af;
-      --secondary-color: #1e3a8a;
-      --accent-color: #3b82f6;
-      --light-gray: #f3f4f6;
-      --dark-gray: #4b5563;
-      --danger: #ef4444;
-      --success: #10b981;
-      --warning: #f59e0b;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Flotilla 360</title>
+    <!-- 1. TailwindCSS para estilos -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 2. Librería para Captura de Firma -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/4.0.0/signature_pad.umd.min.js"></script>
+    <!-- 3. Librerías para Exportar a PDF (jsPDF y html2canvas) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #f9fafb;
-      min-height: 100vh;
-    }
-    
-    .login-container {
-      background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
-      min-height: 100vh;
-    }
-    
-    .login-card {
-      backdrop-filter: blur(10px);
-      background-color: rgba(255, 255, 255, 0.9);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-      border-radius: 1rem;
-    }
-    
-    .app-header {
-      background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    }
-    
-    .logo-text {
-      background: linear-gradient(45deg, #fff, #e2e8f0);
-      -webkit-background-clip: text;
-      color: transparent;
-      font-weight: 700;
-    }
-    
-    .side-menu {
-      background-color: white;
-      border-right: 1px solid #e5e7eb;
-      transition: all 0.3s ease;
-      height: calc(100vh - 64px);
-      overflow-y: auto;
-    }
-    
-    .menu-item {
-      border-radius: 0.375rem;
-      transition: all 0.2s ease;
-    }
-    
-    .menu-item:hover {
-      background-color: var(--light-gray);
-    }
-    
-    .menu-item.active {
-      background-color: #dbeafe;
-      color: var(--primary-color);
-    }
-    
-    .content-area {
-      min-height: calc(100vh - 64px);
-      background-color: #f9fafb;
-      transition: all 0.3s ease;
-    }
-    
-    .card {
-      background-color: white;
-      border-radius: 0.5rem;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    }
-    
-    .table-header {
-      background-color: #f8fafc;
-    }
-    
-    .overdue {
-      color: var(--danger);
-      font-weight: 600;
-    }
-    
-    .btn-primary {
-      background-color: var(--primary-color);
-      transition: all 0.2s ease;
-    }
-    
-    .btn-primary:hover {
-      background-color: var(--secondary-color);
-    }
-    
-    .btn-secondary {
-      background-color: var(--dark-gray);
-      transition: all 0.2s ease;
-    }
-    
-    .btn-danger {
-      background-color: var(--danger);
-      transition: all 0.2s ease;
-    }
-    
-    .btn-success {
-      background-color: var(--success);
-      transition: all 0.2s ease;
-    }
-    
-    .signature-pad {
-      border: 1px dashed #ccc;
-      border-radius: 0.5rem;
-      background-color: #fff;
-      touch-action: none;
-    }
-    
-    .form-label {
-      color: var(--dark-gray);
-      font-weight: 500;
-    }
-    
-    .form-input {
-      border-color: #e5e7eb;
-      border-radius: 0.375rem;
-      padding: 0.5rem 0.75rem;
-      width: 100%;
-    }
-    
-    .form-input:focus {
-      border-color: var(--accent-color);
-      outline: none;
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-    }
-    
-    .filter-controls {
-      background-color: #fff;
-      border-radius: 0.5rem;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    }
-    
-    @media print {
-      .no-print {
-        display: none !important;
-      }
-      .print-content {
-        display: block !important;
-        width: 100% !important;
-      }
-    }
-    
-    /* Animations */
-    .fade-in {
-      animation: fadeIn 0.3s ease-in;
-    }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    
-    /* Custom checkbox styling */
-    .custom-checkbox {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 1.5rem;
-      height: 1.5rem;
-      border: 2px solid #cbd5e0;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    
-    .custom-checkbox.checked {
-      background-color: var(--primary-color);
-      border-color: var(--primary-color);
-      color: white;
-    }
-    
-    .custom-checkbox.checked.bad {
-      background-color: var(--danger);
-      border-color: var(--danger);
-    }
-    
-    .custom-checkbox.checked.na {
-      background-color: var(--dark-gray);
-      border-color: var(--dark-gray);
-    }
-  </style>
+    <style>
+        /* Estilos para las páginas */
+        .page {
+            display: none;
+        }
+        .page.active {
+            display: block;
+        }
+        .app-page {
+            display: none;
+        }
+        .app-page.active {
+            display: block;
+        }
+        /* Estilo del Canvas para firma */
+        .signature-canvas {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            width: 100%;
+            height: 150px;
+            cursor: crosshair;
+        }
+    </style>
 </head>
-<body>
-  <!-- Login Section -->
-  <div id="login-section" class="login-container flex items-center justify-center w-full">
-    <div class="login-card w-full max-w-md p-8 animate__animated animate__fadeIn">
-      <div class="mb-8 text-center">
-        <h1 class="text-3xl font-bold text-primary-600">
-          <i class="fas fa-car-alt text-blue-700 mr-2"></i>
-          Sistema de Control Vehicular
-        </h1>
-        <p class="mt-2 text-gray-600">Ingrese sus credenciales para continuar</p>
-      </div>
-      <form id="login-form">
-        <div class="mb-4">
-          <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Usuario</label>
-          <div class="relative">
-            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
-              <i class="fas fa-user"></i>
-            </span>
-            <input type="text" id="username" name="username" required
-              class="pl-10 form-input border border-gray-300 rounded-lg py-2 px-4 w-full"
-              placeholder="Ingrese su usuario">
-          </div>
+<body class="bg-gray-100 font-sans">
+
+    <!-- 
+    ============================================================
+    SECCIÓN DE LOGIN (PÁGINA INICIAL)
+    ============================================================
+    -->
+    <div id="login-page" class="page active min-h-screen flex items-center justify-center">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md">
+            <!--  -->
+            <img src="https://i.imgur.com/g8cT2Wd.png" alt="Logo Empresa (Placeholder)" class="w-32 mx-auto mb-4">
+            <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Control de Flotilla 360</h2>
+            <form id="login-form">
+                <div class="mb-4">
+                    <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Usuario</label>
+                    <input type="text" id="username" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div class="mb-6">
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+                    <input type="password" id="password" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md font-semibold hover:bg-blue-700 transition duration-300">
+                    Ingresar
+                </button>
+                <p id="login-error" class="text-red-500 text-sm mt-4 text-center"></p>
+            </form>
         </div>
-        <div class="mb-6">
-          <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
-          <div class="relative">
-            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
-              <i class="fas fa-lock"></i>
-            </span>
-            <input type="password" id="password" name="password" required
-              class="pl-10 form-input border border-gray-300 rounded-lg py-2 px-4 w-full"
-              placeholder="Ingrese su contraseña">
-          </div>
-        </div>
-        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition">
-          Iniciar Sesión <i class="fas fa-sign-in-alt ml-2"></i>
-        </button>
-        <div id="login-error" class="mt-4 text-red-600 text-center hidden"></div>
-      </form>
     </div>
-  </div>
 
-  <!-- Main Application Layout -->
-  <div id="app-container" class="hidden flex flex-col h-screen">
-    <!-- Header -->
-    <header class="app-header text-white py-4 px-6">
-      <div class="container mx-auto flex justify-between items-center">
-        <div class="flex items-center">
-          <i class="fas fa-car-alt text-2xl mr-2"></i>
-          <span class="logo-text text-xl">Sistema de Control de Mantenimiento Vehicular</span>
-        </div>
-        <div class="flex items-center space-x-4">
-          <span id="user-info" class="text-sm hidden md:inline-block">
-            <i class="fas fa-user mr-1"></i> <span id="current-user">Usuario</span>
-          </span>
-          <button id="logout-btn" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-1 rounded text-sm">
-            <i class="fas fa-sign-out-alt mr-1"></i> Cerrar Sesión
-          </button>
-        </div>
-      </div>
-    </header>
-
-    <!-- Main Content -->
-    <div class="flex flex-1 overflow-hidden">
-      <!-- Sidebar -->
-      <aside class="side-menu w-64 hidden md:block shadow-md z-10">
-        <nav class="py-4 px-2">
-          <div class="px-4 py-2 text-lg font-semibold text-gray-600 mb-2">Menú Principal</div>
-          <ul class="space-y-1">
-            <li>
-              <a href="javascript:void(0)" data-page="dashboard" class="menu-item active flex items-center px-4 py-2 text-gray-700">
-                <i class="fas fa-tachometer-alt w-6"></i>
-                <span>Panel Principal</span>
-              </a>
-            </li>
-            <li>
-              <a href="javascript:void(0)" data-page="service" class="menu-item flex items-center px-4 py-2 text-gray-700">
-                <i class="fas fa-tools w-6"></i>
-                <span>Registrar Servicio</span>
-              </a>
-            </li>
-            <li>
-              <a href="javascript:void(0)" data-page="checklist" class="menu-item flex items-center px-4 py-2 text-gray-700">
-                <i class="fas fa-clipboard-check w-6"></i>
-                <span>Lista de Chequeo</span>
-              </a>
-            </li>
-            <li>
-              <a href="javascript:void(0)" data-page="reports" class="menu-item flex items-center px-4 py-2 text-gray-700">
-                <i class="fas fa-file-alt w-6"></i>
-                <span>Reportes</span>
-              </a>
-            </li>
-            <li id="admin-users-menu" class="hidden">
-              <a href="javascript:void(0)" data-page="users" class="menu-item flex items-center px-4 py-2 text-gray-700">
-                <i class="fas fa-users-cog w-6"></i>
-                <span>Gestión de Usuarios</span>
-              </a>
-            </li>
-          </ul>
+    <!-- 
+    ============================================================
+    CONTENEDOR PRINCIPAL DE LA APLICACIÓN (OCULTO)
+    ============================================================
+    -->
+    <div id="app-container" class="page">
+        
+        <!-- Barra de Navegación (Header) -->
+        <nav class="bg-white shadow-md sticky top-0 z-50">
+            <div class="container mx-auto px-4">
+                <div class="flex justify-between items-center h-16">
+                    <!-- Logo y Título -->
+                    <div class="flex items-center space-x-2">
+                        <img src="https://i.imgur.com/g8cT2Wd.png" alt="Logo" class="w-10 h-10">
+                        <span class="text-xl font-bold text-gray-800">Control 360</span>
+                    </div>
+                    
+                    <!-- Menú de Navegación -->
+                    <div class="hidden md:flex space-x-4">
+                        <a href="#" class="nav-link text-gray-700 hover:text-blue-600 font-medium" data-page="dashboard-page">Tablero</a>
+                        <a href="#" class="nav-link text-gray-700 hover:text-blue-600 font-medium" data-page="new-report-page">Nuevo Reporte 360</a>
+                        <a href="#" class="nav-link text-gray-700 hover:text-blue-600 font-medium" data-page="view-reports-page">Historial (Placa/Piloto)</a>
+                        <a href="#" id="admin-nav-link" class="nav-link text-red-600 hover:text-red-800 font-medium" data-page="admin-page">Admin Usuarios</a>
+                    </div>
+                    
+                    <!-- Info de Usuario y Logout -->
+                    <div class="flex items-center space-x-3">
+                        <span id="current-user" class="text-sm text-gray-600"></span>
+                        <button id="logout-button" class="bg-red-500 text-white px-3 py-1 rounded-md text-sm font-medium hover:bg-red-600">
+                            Salir
+                        </button>
+                    </div>
+                </div>
+            </div>
         </nav>
-      </aside>
 
-      <!-- Mobile menu button -->
-      <button id="mobile-menu-button" class="md:hidden fixed bottom-4 right-4 z-20 bg-blue-600 text-white rounded-full p-3 shadow-lg">
-        <i class="fas fa-bars"></i>
-      </button>
+        <!-- Contenedor de Páginas de la App -->
+        <main class="container mx-auto p-4 md:p-6">
 
-      <!-- Mobile menu -->
-      <div id="mobile-menu" class="fixed inset-0 bg-gray-800 bg-opacity-75 z-50 hidden">
-        <div class="bg-white h-full w-64 p-4">
-          <div class="flex justify-between items-center mb-4">
-            <h2 class="text-lg font-bold">Menú</h2>
-            <button id="close-mobile-menu" class="text-gray-600">
-              <i class="fas fa-times text-xl"></i>
-            </button>
-          </div>
-          <nav>
-            <ul class="space-y-2">
-              <li>
-                <a href="javascript:void(0)" data-page="dashboard" class="mobile-menu-item flex items-center px-4 py-2 text-gray-700 rounded hover:bg-gray-100">
-                  <i class="fas fa-tachometer-alt w-6"></i>
-                  <span>Panel Principal</span>
-                </a>
-              </li>
-              <li>
-                <a href="javascript:void(0)" data-page="service" class="mobile-menu-item flex items-center px-4 py-2 text-gray-700 rounded hover:bg-gray-100">
-                  <i class="fas fa-tools w-6"></i>
-                  <span>Registrar Servicio</span>
-                </a>
-              </li>
-              <li>
-                <a href="javascript:void(0)" data-page="checklist" class="mobile-menu-item flex items-center px-4 py-2 text-gray-700 rounded hover:bg-gray-100">
-                  <i class="fas fa-clipboard-check w-6"></i>
-                  <span>Lista de Chequeo</span>
-                </a>
-              </li>
-              <li>
-                <a href="javascript:void(0)" data-page="reports" class="mobile-menu-item flex items-center px-4 py-2 text-gray-700 rounded hover:bg-gray-100">
-                  <i class="fas fa-file-alt w-6"></i>
-                  <span>Reportes</span>
-                </a>
-              </li>
-              <li id="mobile-admin-users-menu" class="hidden">
-                <a href="javascript:void(0)" data-page="users" class="mobile-menu-item flex items-center px-4 py-2 text-gray-700 rounded hover:bg-gray-100">
-                  <i class="fas fa-users-cog w-6"></i>
-                  <span>Gestión de Usuarios</span>
-                </a>
-              </li>
-            </ul>
-          </nav>
-        </div>
-      </div>
-
-      <!-- Content Area -->
-      <main class="content-area flex-1 p-4 md:p-6 overflow-y-auto">
-        <!-- Dynamic content will be loaded here -->
-        
-        <!-- Dashboard Page -->
-        <section id="dashboard-page" class="page-content animate__animated animate__fadeIn">
-          <div class="mb-6">
-            <h1 class="text-2xl font-bold text-gray-800 mb-2">Panel Principal</h1>
-            <p class="text-gray-600">Control de vehículos y servicios de mantenimiento</p>
-          </div>
-
-          <!-- Stats Summary -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div class="card p-4 flex items-center">
-              <div class="bg-blue-100 p-3 rounded-full mr-4">
-                <i class="fas fa-car text-blue-600 text-xl"></i>
-              </div>
-              <div>
-                <p class="text-gray-500 text-sm">Vehículos Registrados</p>
-                <p class="text-xl font-bold" id="total-vehicles">--</p>
-              </div>
+            <!-- 
+            ============================================================
+            PÁGINA 1: TABLERO (DASHBOARD)
+            ============================================================
+            -->
+            <div id="dashboard-page" class="app-page active">
+                <h1 class="text-3xl font-bold text-gray-800 mb-6">Tablero Principal</h1>
+                
+                <!-- Alertas de Servicio Vencido -->
+                <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md mb-6 shadow-md">
+                    <h2 class="text-xl font-semibold mb-3">Alertas de Servicio Vencido</h2>
+                    <div id="dashboard-alerts" class="space-y-2">
+                        <!-- Las alertas se inyectarán aquí -->
+                        <p class="text-gray-700">No hay vehículos con servicio vencido.</p>
+                    </div>
+                </div>
+                
+                <!-- Historial Reciente -->
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Inspecciones Recientes</h2>
+                    <div id="dashboard-recent" class="space-y-3">
+                        <!-- Reportes recientes se inyectarán aquí -->
+                    </div>
+                </div>
             </div>
-            <div class="card p-4 flex items-center">
-              <div class="bg-green-100 p-3 rounded-full mr-4">
-                <i class="fas fa-tools text-green-600 text-xl"></i>
-              </div>
-              <div>
-                <p class="text-gray-500 text-sm">Servicios Realizados</p>
-                <p class="text-xl font-bold" id="total-services">--</p>
-              </div>
+
+            <!-- 
+            ============================================================
+            PÁGINA 2: NUEVO REPORTE 360
+            ============================================================
+            -->
+            <div id="new-report-page" class="app-page">
+                <form id="new-report-form" class="bg-white p-6 rounded-lg shadow-md">
+                    <h1 class="text-3xl font-bold text-gray-800 mb-6 border-b pb-4">Check List Inspección 360 Vehícular</h1>
+                    
+                    <!-- Sección 1: Datos de Campaña y Vehículo -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Marca a promocionar</label>
+                            <input type="text" name="marca_promocionar" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Fecha inicio (Campaña)</label>
+                            <input type="date" name="fecha_inicio_campana" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Fecha finalización (Campaña)</label>
+                            <input type="date" name="fecha_fin_campana" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Fecha de inspección</label>
+                            <input type="date" name="fecha_inspeccion" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Vehículo</label>
+                            <input type="text" name="vehiculo" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Placa</label>
+                            <input type="text" name="placa" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Modelo</label>
+                            <input type="text" name="modelo" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Nombres y apellidos piloto</label>
+                            <input type="text" name="piloto_nombre" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Tipo de licencia</label>
+                            <input type="text" name="piloto_licencia_tipo" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Vencimiento licencia</label>
+                            <input type="date" name="piloto_licencia_venc" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Tarjeta seguro</label>
+                            <input type="text" name="tarjeta_seguro" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Fecha servicio anterior</label>
+                            <input type="date" name="fecha_servicio_anterior" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                        </div>
+                    </div>
+
+                    <!-- Sección 2: Kilometraje (CRÍTICO) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
+                        <div>
+                            <label class="block text-sm font-medium text-blue-700">Km próximo servicio</label>
+                            <input type="number" name="km_proximo_servicio" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-blue-700">Km actual</label>
+                            <input type="number" name="km_actual" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required>
+                        </div>
+                    </div>
+
+                    <!-- Sección 3: Lista de Chequeo -->
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4 mt-8 border-b pb-2">Lista de Chequeo</h2>
+                    <div class="overflow-x-auto">
+                        <table id="checklist-table" class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoría</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ítem a Evaluar</th>
+                                    <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Buen Estado</th>
+                                    <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Mal Estado</th>
+                                    <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">N/A</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Observaciones</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <!-- Items del Checklist (Basado en PDF) -->
+                                <!-- NIVEL
+                                ES -->
+                                <tr class="bg-gray-50"><td colspan="6" class="px-6 py-2 font-semibold text-gray-700">Niveles</td></tr>
+                                <tr>
+                                    <td>Niveles</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Líquido refrigerante de radiador</td>
+                                    <td class="text-center"><input type="radio" name="chk_niv_1" value="bueno" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_niv_1" value="malo" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_niv_1" value="na" class="h-4 w-4 text-blue-600" checked></td>
+                                    <td class="px-6 py-2"><input type="text" name="obs_niv_1" class="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"></td>
+                                </tr>
+                                <tr>
+                                    <td>Niveles</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Líquido refrigerante depósito auxiliar</td>
+                                    <td class="text-center"><input type="radio" name="chk_niv_2" value="bueno" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_niv_2" value="malo" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_niv_2" value="na" class="h-4 w-4 text-blue-600" checked></td>
+                                    <td class="px-6 py-2"><input type="text" name="obs_niv_2" class="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"></td>
+                                </tr>
+                                <tr>
+                                    <td>Niveles</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Líquido de frenos</td>
+                                    <td class="text-center"><input type="radio" name="chk_niv_3" value="bueno" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_niv_3" value="malo" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_niv_3" value="na" class="h-4 w-4 text-blue-600" checked></td>
+                                    <td class="px-6 py-2"><input type="text" name="obs_niv_3" class="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"></td>
+                                </tr>
+                                <tr>
+                                    <td>Niveles</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Aceite de Motor</td>
+                                    <td class="text-center"><input type="radio" name="chk_niv_4" value="bueno" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_niv_4" value="malo" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_niv_4" value="na" class="h-4 w-4 text-blue-600" checked></td>
+                                    <td class="px-6 py-2"><input type="text" name="obs_niv_4" class="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"></td>
+                                </tr>
+                                <tr>
+                                    <td>Niveles</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Nivel líquido hidráulico</td>
+                                    <td class="text-center"><input type="radio" name="chk_niv_5" value="bueno" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_niv_5" value="malo" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_niv_5" value="na" class="h-4 w-4 text-blue-600" checked></td>
+                                    <td class="px-6 py-2"><input type="text" name="obs_niv_5" class="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"></td>
+                                </tr>
+                                <tr>
+                                    <td>Niveles</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Depósito Limpiavidrios</td>
+                                    <td class="text-center"><input type="radio" name="chk_niv_6" value="bueno" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_niv_6" value="malo" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_niv_6" value="na" class="h-4 w-4 text-blue-600" checked></td>
+                                    <td class="px-6 py-2"><input type="text" name="obs_niv_6" class="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"></td>
+                                </tr>
+                                <!-- PEDALES -->
+                                <tr class="bg-gray-50"><td colspan="6" class="px-6 py-2 font-semibold text-gray-700">Pedales</td></tr>
+                                <tr>
+                                    <td>Pedales</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Acelerador (uniformidad)</td>
+                                    <td class="text-center"><input type="radio" name="chk_ped_1" value="bueno" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_ped_1" value="malo" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_ped_1" value="na" class="h-4 w-4 text-blue-600" checked></td>
+                                    <td class="px-6 py-2"><input type="text" name="obs_ped_1" class="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"></td>
+                                </tr>
+                                <tr>
+                                    <td>Pedales</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Embrague (clutch)</td>
+                                    <td class="text-center"><input type="radio" name="chk_ped_2" value="bueno" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_ped_2" value="malo" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_ped_2" value="na" class="h-4 w-4 text-blue-600" checked></td>
+                                    <td class="px-6 py-2"><input type="text" name="obs_ped_2" class="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"></td>
+                                </tr>
+                                <tr>
+                                    <td>Pedales</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Freno (agarre/firmeza)</td>
+                                    <td class="text-center"><input type="radio" name="chk_ped_3" value="bueno" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_ped_3" value="malo" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_ped_3" value="na" class="h-4 w-4 text-blue-600" checked></td>
+                                    <td class="px-6 py-2"><input type="text" name="obs_ped_3" class="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"></td>
+                                </tr>
+                                <!-- LUCES -->
+                                <tr class="bg-gray-50"><td colspan="6" class="px-6 py-2 font-semibold text-gray-700">Luces</td></tr>
+                                <tr>
+                                    <td>Luces</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Luces (alta, media y baja)</td>
+                                    <td class="text-center"><input type="radio" name="chk_luz_1" value="bueno" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_luz_1" value="malo" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_luz_1" value="na" class="h-4 w-4 text-blue-600" checked></td>
+                                    <td class="px-6 py-2"><input type="text" name="obs_luz_1" class="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"></td>
+                                </tr>
+                                <tr>
+                                    <td>Luces</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Direccionales</td>
+                                    <td class="text-center"><input type="radio" name="chk_luz_2" value="bueno" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_luz_2" value="malo" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_luz_2" value="na" class="h-4 w-4 text-blue-600" checked></td>
+                                    <td class="px-6 py-2"><input type="text" name="obs_luz_2" class="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"></td>
+                                </tr>
+                                <tr>
+                                    <td>Luces</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Emergencia</td>
+                                    <td class="text-center"><input type="radio" name="chk_luz_3" value="bueno" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_luz_3" value="malo" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_luz_3" value="na" class="h-4 w-4 text-blue-600" checked></td>
+                                    <td class="px-6 py-2"><input type="text" name="obs_luz_3" class="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"></td>
+                                </tr>
+                                <tr>
+                                    <td>Luces</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Stops (freno)</td>
+                                    <td class="text-center"><input type="radio" name="chk_luz_4" value="bueno" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_luz_4" value="malo" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_luz_4" value="na" class="h-4 w-4 text-blue-600" checked></td>
+                                    <td class="px-6 py-2"><input type="text" name="obs_luz_4" class="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"></td>
+                                </tr>
+                                <tr>
+                                    <td>Luces</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Testigos de tablero</td>
+                                    <td class="text-center"><input type="radio" name="chk_luz_5" value="bueno" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_luz_5" value="malo" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_luz_5" value="na" class="h-4 w-4 text-blue-600" checked></td>
+                                    <td class="px-6 py-2"><input type="text" name="obs_luz_5" class="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"></td>
+                                </tr>
+                                <tr>
+                                    <td>Luces</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Luz reversa</td>
+                                    <td class="text-center"><input type="radio" name="chk_luz_6" value="bueno" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_luz_6" value="malo" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_luz_6" value="na" class="h-4 w-4 text-blue-600" checked></td>
+                                    <td class="px-6 py-2"><input type="text" name="obs_luz_6" class="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"></td>
+                                </tr>
+                                <tr>
+                                    <td>Luces</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Luz interna cabina</td>
+                                    <td class="text-center"><input type="radio" name="chk_luz_7" value="bueno" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_luz_7" value="malo" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_luz_7" value="na" class="h-4 w-4 text-blue-600" checked></td>
+                                    <td class="px-6 py-2"><input type="text" name="obs_luz_7" class="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"></td>
+                                </tr>
+                                <!-- EQUIPO DE CARRETERA -->
+                                <tr class="bg-gray-50"><td colspan="6" class="px-6 py-2 font-semibold text-gray-700">Equipo de Carretera</td></tr>
+                                <tr>
+                                    <td>Equipo</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Llanta de repuesto</td>
+                                    <td class="text-center"><input type="radio" name="chk_eq_1" value="bueno" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_eq_1" value="malo" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_eq_1" value="na" class="h-4 w-4 text-blue-600" checked></td>
+                                    <td class="px-6 py-2"><input type="text" name="obs_eq_1" class="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"></td>
+                                </tr>
+                                <tr>
+                                    <td>Equipo</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Triángulos/Conos</td>
+                                    <td class="text-center"><input type="radio" name="chk_eq_2" value="bueno" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_eq_2" value="malo" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_eq_2" value="na" class="h-4 w-4 text-blue-600" checked></td>
+                                    <td class="px-6 py-2"><input type="text" name="obs_eq_2" class="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"></td>
+                                </tr>
+                                <tr>
+                                    <td>Equipo</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Llave de chuchos</td>
+                                    <td class="text-center"><input type="radio" name="chk_eq_3" value="bueno" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_eq_3" value="malo" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_eq_3" value="na" class="h-4 w-4 text-blue-600" checked></td>
+                                    <td class="px-6 py-2"><input type="text" name="obs_eq_3" class="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"></td>
+                                </tr>
+                                <tr>
+                                    <td>Equipo</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Triquet (Gato/Jack)</td>
+                                    <td class="text-center"><input type="radio" name="chk_eq_4" value="bueno" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_eq_4" value="malo" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_eq_4" value="na" class="h-4 w-4 text-blue-600" checked></td>
+                                    <td class="px-6 py-2"><input type="text" name="obs_eq_4" class="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"></td>
+                                </tr>
+                                <!-- GENERAL 1 -->
+                                <tr class="bg-gray-50"><td colspan="6" class="px-6 py-2 font-semibold text-gray-700">General (Componentes)</td></tr>
+                                <tr>
+                                    <td>General</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Llantas (presión, labor, desgaste)</td>
+                                    <td class="text-center"><input type="radio" name="chk_gen_1" value="bueno" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_gen_1" value="malo" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_gen_1" value="na" class="h-4 w-4 text-blue-600" checked></td>
+                                    <td class="px-6 py-2"><input type="text" name="obs_gen_1" class="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"></td>
+                                </tr>
+                                <tr>
+                                    <td>General</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Batería (Bornes, corrosión)</td>
+                                    <td class="text-center"><input type="radio" name="chk_gen_2" value="bueno" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_gen_2" value="malo" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_gen_2" value="na" class="h-4 w-4 text-blue-600" checked></td>
+                                    <td class="px-6 py-2"><input type="text" name="obs_gen_2" class="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"></td>
+                                </tr>
+                                <tr>
+                                    <td>General</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Aros (golpes o fisuras)</td>
+                                    <td class="text-center"><input type="radio" name="chk_gen_3" value="bueno" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_gen_3" value="malo" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_gen_3" value="na" class="h-4 w-4 text-blue-600" checked></td>
+                                    <td class="px-6 py-2"><input type="text" name="obs_gen_3" class="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"></td>
+                                </tr>
+                                <tr>
+                                    <td>General</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Cinturones de Seguridad</td>
+                                    <td class="text-center"><input type="radio" name="chk_gen_4" value="bueno" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_gen_4" value="malo" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_gen_4" value="na" class="h-4 w-4 text-blue-600" checked></td>
+                                    <td class="px-6 py-2"><input type="text" name="obs_gen_4" class="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"></td>
+                                </tr>
+                                <tr>
+                                    <td>General</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Bocina</td>
+                                    <td class="text-center"><input type="radio" name="chk_gen_5" value="bueno" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_gen_5" value="malo" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_gen_5" value="na" class="h-4 w-4 text-blue-600" checked></td>
+                                    <td class="px-6 py-2"><input type="text" name="obs_gen_5" class="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"></td>
+                                </tr>
+                                <tr>
+                                    <td>General</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Freno de Mano (funcionalidad)</td>
+                                    <td class="text-center"><input type="radio" name="chk_gen_6" value="bueno" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_gen_6" value="malo" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_gen_6" value="na" class="h-4 w-4 text-blue-600" checked></td>
+                                    <td class="px-6 py-2"><input type="text" name="obs_gen_6" class="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"></td>
+                                </tr>
+                                <tr>
+                                    <td>General</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Retrovisores</td>
+                                    <td class="text-center"><input type="radio" name="chk_gen_7" value="bueno" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_gen_7" value="malo" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_gen_7" value="na" class="h-4 w-4 text-blue-600" checked></td>
+                                    <td class="px-6 py-2"><input type="text" name="obs_gen_7" class="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"></td>
+                                </tr>
+                                <tr>
+                                    <td>General</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Plumillas/Limpiabrisas</td>
+                                    <td class="text-center"><input type="radio" name="chk_gen_8" value="bueno" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_gen_8" value="malo" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_gen_8" value="na" class="h-4 w-4 text-blue-600" checked></td>
+                                    <td class="px-6 py-2"><input type="text" name="obs_gen_8" class="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"></td>
+                                </tr>
+                                <tr>
+                                    <td>General</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Tapicería</td>
+                                    <td class="text-center"><input type="radio" name="chk_gen_9" value="bueno" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_gen_9" value="malo" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_gen_9" value="na" class="h-4 w-4 text-blue-600" checked></td>
+                                    <td class="px-6 py-2"><input type="text" name="obs_gen_9" class="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"></td>
+                                </tr>
+                                <!-- AUDIO -->
+                                <tr class="bg-gray-50"><td colspan="6" class="px-6 py-2 font-semibold text-gray-700">Audio (Promoción)</td></tr>
+                                <tr>
+                                    <td>Audio</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Amplificador (encendido)</td>
+                                    <td class="text-center"><input type="radio" name="chk_aud_1" value="bueno" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_aud_1" value="malo" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_aud_1" value="na" class="h-4 w-4 text-blue-600" checked></td>
+                                    <td class="px-6 py-2"><input type="text" name="obs_aud_1" class="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"></td>
+                                </tr>
+                                <tr>
+                                    <td>Audio</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Radio</td>
+                                    <td class="text-center"><input type="radio" name="chk_aud_2" value="bueno" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_aud_2" value="malo" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_aud_2" value="na" class="h-4 w-4 text-blue-600" checked></td>
+                                    <td class="px-6 py-2"><input type="text" name="obs_aud_2" class="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"></td>
+                                </tr>
+                                <tr>
+                                    <td>Audio</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Memoria (Spots y/o música)</td>
+                                    <td class="text-center"><input type="radio" name="chk_aud_3" value="bueno" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_aud_3" value="malo" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_aud_3" value="na" class="h-4 w-4 text-blue-600" checked></td>
+                                    <td class="px-6 py-2"><input type="text" name="obs_aud_3" class="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"></td>
+                                </tr>
+                                <tr>
+                                    <td>Audio</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Micrófono</td>
+                                    <td class="text-center"><input type="radio" name="chk_aud_4" value="bueno" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_aud_4" value="malo" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_aud_4" value="na" class="h-4 w-4 text-blue-600" checked></td>
+                                    <td class="px-6 py-2"><input type="text" name="obs_aud_4" class="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"></td>
+                                </tr>
+                                <tr>
+                                    <td>Audio</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Cable Micrófono</td>
+                                    <td class="text-center"><input type="radio" name="chk_aud_5" value="bueno" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_aud_5" value="malo" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_aud_5" value="na" class="h-4 w-4 text-blue-600" checked></td>
+                                    <td class="px-6 py-2"><input type="text" name="obs_aud_5" class="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"></td>
+                                </tr>
+                                <tr>
+                                    <td>Audio</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Bocinas exteriores (funcionalidad)</td>
+                                    <td class="text-center"><input type="radio" name="chk_aud_6" value="bueno" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_aud_6" value="malo" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_aud_6" value="na" class="h-4 w-4 text-blue-600" checked></td>
+                                    <td class="px-6 py-2"><input type="text" name="obs_aud_6" class="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"></td>
+                                </tr>
+                                <!-- IMAGEN -->
+                                <tr class="bg-gray-50"><td colspan="6" class="px-6 py-2 font-semibold text-gray-700">Imagen Publicidad</td></tr>
+                                <tr>
+                                    <td>Imagen</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Logos de puertas</td>
+                                    <td class="text-center"><input type="radio" name="chk_img_1" value="bueno" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_img_1" value="malo" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_img_1" value="na" class="h-4 w-4 text-blue-600" checked></td>
+                                    <td class="px-6 py-2"><input type="text" name="obs_img_1" class="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"></td>
+                                </tr>
+                                <tr>
+                                    <td>Imagen</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Faldones</td>
+                                    <td class="text-center"><input type="radio" name="chk_img_2" value="bueno" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_img_2" value="malo" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_img_2" value="na" class="h-4 w-4 text-blue-600" checked></td>
+                                    <td class="px-6 py-2"><input type="text" name="obs_img_2" class="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"></td>
+                                </tr>
+                                <tr>
+                                    <td>Imagen</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Valla (ambos lados)</td>
+                                    <td class="text-center"><input type="radio" name="chk_img_3" value="bueno" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_img_3" value="malo" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_img_3" value="na" class="h-4 w-4 text-blue-600" checked></td>
+                                    <td class="px-6 py-2"><input type="text" name="obs_img_3" class="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"></td>
+                                </tr>
+                                <tr>
+                                    <td>Imagen</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Trasera camión</td>
+                                    <td class="text-center"><input type="radio" name="chk_img_4" value="bueno" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_img_4" value="malo" class="h-4 w-4 text-blue-600"></td>
+                                    <td class="text-center"><input type="radio" name="chk_img_4" value="na" class="h-4 w-4 text-blue-600" checked></td>
+                                    <td class="px-6 py-2"><input type="text" name="obs_img_4" class="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Sección 4: Observaciones Adicionales -->
+                    <div class="mt-8">
+                        <label for="observaciones_adicionales" class="block text-sm font-medium text-gray-700">Observaciones adicionales:</label>
+                        <textarea id="observaciones_adicionales" name="observaciones_adicionales" rows="4" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"></textarea>
+                    </div>
+
+                    <!-- Sección 5: Firmas Digitales -->
+                    <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Firma aceptación piloto promotor:</label>
+                            <canvas id="sig-piloto-canvas" class="signature-canvas bg-white"></canvas>
+                            <button type="button" id="clear-sig-piloto" class="mt-2 text-sm text-blue-600 hover:text-blue-800">Limpiar Firma</button>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Firma aceptación supervisor promociones:</label>
+                            <canvas id="sig-supervisor-canvas" class="signature-canvas bg-white"></canvas>
+                            <button type="button" id="clear-sig-supervisor" class="mt-2 text-sm text-blue-600 hover:text-blue-800">Limpiar Firma</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Botón de Guardar -->
+                    <div class="mt-10 border-t pt-6 text-right">
+                        <button type="submit" class="bg-green-600 text-white py-3 px-8 rounded-md font-semibold text-lg hover:bg-green-700 transition duration-300">
+                            Guardar Inspección
+                        </button>
+                    </div>
+                </form>
             </div>
-            <div class="card p-4 flex items-center">
-              <div class="bg-red-100 p-3 rounded-full mr-4">
-                <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
-              </div>
-              <div>
-                <p class="text-gray-500 text-sm">Servicios Vencidos</p>
-                <p class="text-xl font-bold" id="overdue-services">--</p>
-              </div>
-            </div>
-          </div>
 
-          <!-- Vehicle List -->
-          <div class="card mb-4">
-            <div class="p-4 border-b flex justify-between items-center">
-              <h2 class="text-lg font-semibold text-gray-700">Lista de Vehículos</h2>
-              <div class="flex space-x-2">
-                <input type="text" id="vehicle-search" placeholder="Buscar..." 
-                  class="border border-gray-300 rounded px-3 py-1 text-sm">
-                <button id="add-vehicle-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm flex items-center">
-                  <i class="fas fa-plus mr-1"></i> Agregar
-                </button>
-              </div>
-            </div>
-            <div class="overflow-x-auto">
-              <table class="min-w-full divide-y divide-gray-200">
-                <thead class="table-header">
-                  <tr>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Placa
-                    </th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Piloto
-                    </th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Último Servicio
-                    </th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Km Actual
-                    </th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Próximo Servicio (Km)
-                    </th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Estado
-                    </th>
-                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Acciones
-                    </th>
-                  </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200" id="vehicle-table-body">
-                  <!-- Vehicle data will be loaded here -->
-                  <tr>
-                    <td colspan="7" class="px-4 py-8 text-center text-gray-500">
-                      Cargando vehículos...
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-
-        <!-- Service Registration Page -->
-        <section id="service-page" class="page-content animate__animated animate__fadeIn hidden">
-          <div class="mb-6">
-            <h1 class="text-2xl font-bold text-gray-800 mb-2">Registro de Servicio</h1>
-            <p class="text-gray-600">Registre un nuevo servicio de mantenimiento para un vehículo</p>
-          </div>
-
-          <div class="card p-6">
-            <form id="service-form">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- License Plate -->
-                <div class="mb-4">
-                  <label for="license-plate" class="form-label block mb-1">Placa del Vehículo</label>
-                  <div class="flex space-x-2">
-                    <select id="license-plate" name="license-plate" class="form-input flex-1">
-                      <option value="">-- Seleccionar placa --</option>
-                      <option value="new">+ Ingresar nueva placa</option>
-                    </select>
-                  </div>
-                </div>
-
-                <!-- New License Plate (conditional) -->
-                <div id="new-plate-container" class="mb-4 hidden">
-                  <label for="new-license-plate" class="form-label block mb-1">Nueva Placa</label>
-                  <input type="text" id="new-license-plate" name="new-license-plate" class="form-input" placeholder="Ingrese la placa">
-                </div>
-
-                <!-- Pilot Name -->
-                <div class="mb-4">
-                  <label for="pilot-name" class="form-label block mb-1">Nombre del Piloto</label>
-                  <input type="text" id="pilot-name" name="pilot-name" class="form-input" placeholder="Nombre del piloto">
-                </div>
-
-                <!-- Service Date -->
-                <div class="mb-4">
-                  <label for="service-date" class="form-label block mb-1">Fecha de Servicio</label>
-                  <div class="relative">
-                    <input type="text" id="service-date" name="service-date" class="form-input" placeholder="Seleccione la fecha">
-                    <span class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                      <i class="fas fa-calendar"></i>
-                    </span>
-                  </div>
-                </div>
-
-                <!-- Current KM -->
-                <div class="mb-4">
-                  <label for="current-km" class="form-label block mb-1">Kilometraje Actual</label>
-                  <input type="number" id="current-km" name="current-km" class="form-input" placeholder="Km actual">
-                </div>
-
-                <!-- Next Service KM -->
-                <div class="mb-4">
-                  <label for="next-service-km" class="form-label block mb-1">Kilometraje Próximo Servicio</label>
-                  <input type="number" id="next-service-km" name="next-service-km" class="form-input" placeholder="Km próximo servicio">
-                </div>
-
-                <!-- Observations -->
-                <div class="mb-4 md:col-span-2">
-                  <label for="service-observations" class="form-label block mb-1">Observaciones</label>
-                  <textarea id="service-observations" name="service-observations" rows="3" class="form-input resize-none" placeholder="Ingrese cualquier observación relevante"></textarea>
-                </div>
-              </div>
-
-              <div class="mt-6 flex justify-end space-x-3">
-                <button type="button" id="cancel-service-btn" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                  Cancelar
-                </button>
-                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                  Guardar Servicio
-                </button>
-              </div>
-            </form>
-          </div>
-        </section>
-
-        <!-- Checklist Page -->
-        <section id="checklist-page" class="page-content animate__animated animate__fadeIn hidden">
-          <div class="mb-6">
-            <h1 class="text-2xl font-bold text-gray-800 mb-2">Lista de Chequeo</h1>
-            <p class="text-gray-600">Complete la lista de verificación del vehículo</p>
-          </div>
-
-          <div class="card p-6">
-            <form id="checklist-form">
-              <div class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- License Plate -->
-                <div class="mb-4">
-                  <label for="checklist-license-plate" class="form-label block mb-1">Placa del Vehículo</label>
-                  <select id="checklist-license-plate" name="checklist-license-plate" class="form-input" required>
-                    <option value="">-- Seleccionar placa --</option>
-                  </select>
-                </div>
-
-                <!-- Date -->
-                <div class="mb-4">
-                  <label for="checklist-date" class="form-label block mb-1">Fecha de Inspección</label>
-                  <div class="relative">
-                    <input type="text" id="checklist-date" name="checklist-date" class="form-input" placeholder="Seleccione la fecha" required>
-                    <span class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                      <i class="fas fa-calendar"></i>
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Checklist Table -->
-              <div class="mb-8 overflow-x-auto">
-                <table class="min-w-full border border-gray-200">
-                  <thead>
-                    <tr class="bg-gray-100">
-                      <th class="py-2 px-4 border-b text-left text-sm font-medium text-gray-700">Ítem</th>
-                      <th class="py-2 px-4 border-b text-center text-sm font-medium text-gray-700">Buen Estado</th>
-                      <th class="py-2 px-4 border-b text-center text-sm font-medium text-gray-700">Mal Estado</th>
-                      <th class="py-2 px-4 border-b text-center text-sm font-medium text-gray-700">N/A</th>
-                      <th class="py-2 px-4 border-b text-left text-sm font-medium text-gray-700">Observaciones</th>
-                    </tr>
-                  </thead>
-                  <tbody id="checklist-items">
-                    <!-- Items will be added here dynamically -->
-                  </tbody>
-                </table>
-              </div>
-
-              <!-- Signature Pad -->
-              <div class="mb-6">
-                <label class="form-label block mb-1">Firma de Inspección</label>
-                <div class="flex flex-col items-center space-y-3">
-                  <canvas id="signature-pad" class="signature-pad w-full max-w-md h-48 mb-2"></canvas>
-                  <div class="flex space-x-2">
-                    <button type="button" id="clear-signature" class="px-3 py-1 text-sm border border-gray-300 rounded bg-white text-gray-700">
-                      <i class="fas fa-eraser mr-1"></i> Limpiar firma
+            <!-- 
+            ============================================================
+            PÁGINA 3: HISTORIAL (VER REPORTES)
+            ============================================================
+            -->
+            <div id="view-reports-page" class="app-page">
+                <h1 class="text-3xl font-bold text-gray-800 mb-6">Historial de Inspecciones</h1>
+                
+                <!-- Formulario de Búsqueda -->
+                <form id="search-form" class="bg-white p-6 rounded-lg shadow-md mb-6 flex flex-col md:flex-row gap-4 items-end">
+                    <div class="flex-1 w-full">
+                        <label for="search-placa" class="block text-sm font-medium text-gray-700">Buscar por Placa:</label>
+                        <input type="text" id="search-placa" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                    </div>
+                    <div class="flex-1 w-full">
+                        <label for="search-piloto" class="block text-sm font-medium text-gray-700">Buscar por Piloto:</label>
+                        <input type="text" id="search-piloto" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                    </div>
+                    <button type="submit" class="w-full md:w-auto bg-blue-600 text-white py-2 px-6 rounded-md font-semibold hover:bg-blue-700 transition duration-300">
+                        Buscar
                     </button>
-                  </div>
+                </form>
+
+                <!-- Contenedor de Resultados -->
+                <div id="search-results-container" class="bg-white p-6 rounded-lg shadow-md">
+                    <p class="text-gray-500">Ingrese un término de búsqueda para ver los reportes.</p>
+                    <!-- Los resultados de la búsqueda se inyectarán aquí -->
                 </div>
-              </div>
-
-              <div class="mt-6 flex justify-end space-x-3">
-                <button type="button" id="cancel-checklist-btn" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                  Cancelar
-                </button>
-                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                  Guardar Inspección
-                </button>
-              </div>
-            </form>
-          </div>
-        </section>
-
-        <!-- Reports Page -->
-        <section id="reports-page" class="page-content animate__animated animate__fadeIn hidden">
-          <div class="mb-6">
-            <h1 class="text-2xl font-bold text-gray-800 mb-2">Reportes</h1>
-            <p class="text-gray-600">Genere reportes de servicios y mantenimiento por vehículo o piloto</p>
-          </div>
-
-          <div class="filter-controls p-4 mb-6">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div>
-                <label for="report-filter-type" class="form-label block mb-1 text-sm">Filtrar por:</label>
-                <select id="report-filter-type" class="form-input">
-                  <option value="plate">Placa del Vehículo</option>
-                  <option value="pilot">Nombre del Piloto</option>
-                </select>
-              </div>
-              <div id="report-filter-plate-container">
-                <label for="report-filter-plate" class="form-label block mb-1 text-sm">Placa:</label>
-                <select id="report-filter-plate" class="form-input">
-                  <option value="">-- Todas las placas --</option>
-                </select>
-              </div>
-              <div id="report-filter-pilot-container" class="hidden">
-                <label for="report-filter-pilot" class="form-label block mb-1 text-sm">Piloto:</label>
-                <select id="report-filter-pilot" class="form-input">
-                  <option value="">-- Todos los pilotos --</option>
-                </select>
-              </div>
-              <div class="md:col-span-2 flex items-end">
-                <button id="generate-report-btn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                  <i class="fas fa-search mr-1"></i> Generar Reporte
-                </button>
-                <button id="print-report-btn" class="ml-2 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 hidden">
-                  <i class="fas fa-print mr-1"></i> Imprimir
-                </button>
-              </div>
             </div>
-          </div>
 
-          <div id="report-results" class="card hidden">
-            <div class="p-4 border-b">
-              <h2 class="text-lg font-semibold text-gray-700">Resultados del Reporte</h2>
-              <p id="report-summary" class="text-sm text-gray-500 mt-1"></p>
+            <!-- 
+            ============================================================
+            PÁGINA 4: DETALLE DE REPORTE (PARA VER Y EXPORTAR A PDF)
+            ============================================================
+            -->
+            <div id="report-detail-page" class="app-page">
+                <div class="mb-6 flex justify-between items-center">
+                    <button id="back-to-search-btn" class="text-blue-600 hover:text-blue-800 font-medium">&larr; Volver a la búsqueda</button>
+                    <div>
+                        <button id="delete-report-btn" data-report-id="" class="bg-red-600 text-white py-2 px-5 rounded-md font-semibold hover:bg-red-700 transition duration-300">
+                            Eliminar Reporte
+                        </button>
+                        <button id="export-pdf-btn" class="bg-green-600 text-white py-2 px-5 rounded-md font-semibold hover:bg-green-700 transition duration-300">
+                            Exportar a PDF
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 
+                Contenedor del PDF (Tamaño Carta: 8.5in x 11in). 
+                Usamos 'w-[8.5in]' para forzar el ancho.
+                'html2canvas' capturará este DIV.
+                -->
+                <div id="pdf-content-wrapper" class="mx-auto max-w-4xl">
+                    <div id="pdf-content" class="bg-white p-10 shadow-xl w-[8.5in] min-h-[11in] mx-auto">
+                        <!-- El contenido detallado del reporte se inyectará aquí -->
+                    </div>
+                </div>
             </div>
-            <div class="overflow-x-auto">
-              <table class="min-w-full divide-y divide-gray-200">
-                <thead class="table-header">
-                  <tr>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Placa
-                    </th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Piloto
-                    </th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Fecha
-                    </th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Km Actual
-                    </th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Próximo Servicio
-                    </th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Estado
-                    </th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Observaciones
-                    </th>
-                  </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200" id="report-table-body">
-                  <!-- Report data will be loaded here -->
-                </tbody>
-              </table>
+
+
+            <!-- 
+            ============================================================
+            PÁGINA 5: PANEL DE ADMINISTRACIÓN (SOLO ADMIN)
+            ============================================================
+            -->
+            <div id="admin-page" class="app-page">
+                <h1 class="text-3xl font-bold text-gray-800 mb-6">Panel de Administración</h1>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Crear Nuevo Usuario -->
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-4">Crear Nuevo Usuario</h2>
+                        <form id="create-user-form">
+                            <div class="mb-4">
+                                <label for="new-username" class="block text-sm font-medium text-gray-700">Nuevo Usuario</label>
+                                <input type="text" id="new-username" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required>
+                            </div>
+                            <div class="mb-4">
+                                <label for="new-password" class="block text-sm font-medium text-gray-700">Nueva Contraseña</label>
+                                <input type="password" id="new-password" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required>
+                            </div>
+                            <div class="mb-6">
+                                <label for="new-role" class="block text-sm font-medium text-gray-700">Rol</label>
+                                <select id="new-role" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white">
+                                    <option value="invitado">Invitado</option>
+                                    <option value="admin">Administrador</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md font-semibold hover:bg-blue-700 transition duration-300">
+                                Crear Usuario
+                            </button>
+                            <p id="admin-success" class="text-green-600 text-sm mt-4"></p>
+                        </form>
+                    </div>
+
+                    <!-- Lista de Usuarios -->
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-4">Usuarios Existentes</h2>
+                        <ul id="user-list" class="space-y-3">
+                            <!-- Los usuarios se inyectarán aquí -->
+                        </ul>
+                    </div>
+                </div>
             </div>
-            <div id="no-report-data" class="p-8 text-center text-gray-500 hidden">
-              No se encontraron registros para los criterios seleccionados
-            </div>
-          </div>
-        </section>
 
-        <!-- User Management Page (Admin only) -->
-        <section id="users-page" class="page-content animate__animated animate__fadeIn hidden">
-          <div class="mb-6">
-            <h1 class="text-2xl font-bold text-gray-800 mb-2">Gestión de Usuarios</h1>
-            <p class="text-gray-600">Administre los usuarios del sistema</p>
-          </div>
+        </main>
+    </div>
 
-          <div class="card mb-4">
-            <div class="p-4 border-b flex justify-between items-center">
-              <h2 class="text-lg font-semibold text-gray-700">Lista de Usuarios</h2>
-              <button id="add-user-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm flex items-center">
-                <i class="fas fa-plus mr-1"></i> Nuevo Usuario
-              </button>
-            </div>
-            <div class="overflow-x-auto">
-              <table class="min-w-full divide-y divide-gray-200">
-                <thead class="table-header">
-                  <tr>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Nombre
-                    </th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Usuario
-                    </th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Rol
-                    </th>
-                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Acciones
-                    </th>
-                  </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200" id="users-table-body">
-                  <!-- User data will be loaded here -->
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-      </main>
-    </div>
-  </div>
 
-  <!-- Modal Components -->
-  <!-- Generic Modal Container -->
-  <div id="modal-container" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 hidden animate__animated animate__fadeIn">
-    <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-      <div id="modal-content">
-        <!-- Modal content will be dynamically inserted here -->
-      </div>
-    </div>
-  </div>
+    <!-- 
+    ============================================================
+    ============================================================
+    SCRIPT PRINCIPAL DE LA APLICACIÓN
+    ============================================================
+    ============================================================
+    -->
+    <script>
+        window.onload = () => {
 
-  <!-- Add/Edit Vehicle Modal Content -->
-  <div id="vehicle-modal-content" class="hidden">
-    <div class="border-b px-6 py-4">
-      <h3 class="text-lg font-medium text-gray-900" id="vehicle-modal-title">Agregar Vehículo</h3>
-    </div>
-    <form id="vehicle-form">
-      <div class="px-6 py-4">
-        <div class="mb-4">
-          <label for="modal-license-plate" class="form-label block mb-1">Placa</label>
-          <input type="text" id="modal-license-plate" name="license-plate" class="form-input" required>
-        </div>
-        <div class="mb-4">
-          <label for="modal-pilot-name" class="form-label block mb-1">Nombre del Piloto</label>
-          <input type="text" id="modal-pilot-name" name="pilot-name" class="form-input" required>
-        </div>
-        <div class="mb-4">
-          <label for="modal-current-km" class="form-label block mb-1">Kilometraje Actual</label>
-          <input type="number" id="modal-current-km" name="current-km" class="form-input" required>
-        </div>
-        <div class="mb-4">
-          <label for="modal-next-service-km" class="form-label block mb-1">Kilometraje Próximo Servicio</label>
-          <input type="number" id="modal-next-service-km" name="next-service-km" class="form-input" required>
-        </div>
-      </div>
-      <div class="bg-gray-50 px-6 py-3 flex justify-end">
-        <button type="button" class="modal-cancel px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 mr-2">
-          Cancelar
-        </button>
-        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-          Guardar
-        </button>
-      </div>
-    </form>
-  </div>
+            // Inicializar librerías PDF
+            const { jsPDF } = window.jspdf;
+            const h2c = window.html2canvas;
 
-  <!-- Add/Edit User Modal Content -->
-  <div id="user-modal-content" class="hidden">
-    <div class="border-b px-6 py-4">
-      <h3 class="text-lg font-medium text-gray-900" id="user-modal-title">Agregar Usuario</h3>
-    </div>
-    <form id="user-form">
-      <div class="px-6 py-4">
-        <div class="mb-4">
-          <label for="modal-fullname" class="form-label block mb-1">Nombre Completo</label>
-          <input type="text" id="modal-fullname" name="fullname" class="form-input" required>
-        </div>
-        <div class="mb-4">
-          <label for="modal-username" class="form-label block mb-1">Nombre de Usuario</label>
-          <input type="text" id="modal-username" name="username" class="form-input" required>
-        </div>
-        <div class="mb-4">
-          <label for="modal-password" class="form-label block mb-1">Contraseña</label>
-          <input type="password" id="modal-password" name="password" class="form-input" required>
-        </div>
-        <div class="mb-4">
-          <label for="modal-role" class="form-label block mb-1">Rol</label>
-          <select id="modal-role" name="role" class="form-input" required>
-            <option value="admin">Administrador</option>
-            <option value="guest">Invitado</option>
-          </select>
-        </div>
-      </div>
-      <div class="bg-gray-50 px-6 py-3 flex justify-end">
-        <button type="button" class="modal-cancel px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 mr-2">
-          Cancelar
-        </button>
-        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-          Guardar
-        </button>
-      </div>
-    </form>
-  </div>
+            // Inicializar pads de firma (se activarán al mostrar la página)
+            let sigPilotoPad, sigSupervisorPad;
 
-  <!-- Confirmation Modal Content -->
-  <div id="confirm-modal-content" class="hidden">
-    <div class="border-b px-6 py-4">
-      <h3 class="text-lg font-medium text-gray-900" id="confirm-modal-title">Confirmar Acción</h3>
-    </div>
-    <div class="px-6 py-4">
-      <p id="confirm-modal-message">¿Está seguro que desea realizar esta acción?</p>
-    </div>
-    <div class="bg-gray-50 px-6 py-3 flex justify-end">
-      <button type="button" id="confirm-modal-cancel" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 mr-2">
-        Cancelar
-      </button>
-      <button type="button" id="confirm-modal-confirm" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
-        Confirmar
-      </button>
-    </div>
-  </div>
+            // --- Objeto Principal de la App ---
+            const App = {
+                // --- Base de Datos (Simulada con localStorage) ---
+                db: {
+                    users: [],
+                    reports: []
+                },
+                currentUser: null,
+                currentPage: 'login-page',
 
-  <!-- Toast Notification -->
-  <div id="toast" class="fixed bottom-4 right-4 px-4 py-2 rounded-lg shadow-lg hidden animate__animated animate__fadeInUp z-50">
-    <div class="flex items-center space-x-2">
-      <i id="toast-icon" class="fas fa-check-circle"></i>
-      <span id="toast-message"></span>
-    </div>
-  </div>
+                // --- Inicialización ---
+                init() {
+                    this.loadData();
+                    this.initLogin();
+                    this.initNavigation();
+                    this.initForms();
+                    this.initSignaturePads();
 
-  <!-- Scripts -->
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
-  <script id="app-script">
-    // App state and initialization
-    document.addEventListener('DOMContentLoaded', function() {
-      // Default admin user if none exists
-      if (!localStorage.getItem('users')) {
-        const defaultAdmin = {
-          fullname: 'Administrador',
-          username: 'admin',
-          password: 'admin123',
-          role: 'admin'
+                    if (this.db.users.length === 0) {
+                        // Crear admin por defecto si la BD está vacía
+                        this.db.users.push({ id: 1, user: 'admin', pass: 'admin', role: 'admin' });
+                        this.saveData();
+                        console.log('Admin por defecto creado: admin / admin');
+                    }
+                },
+
+                // --- Gestión de Datos (localStorage) ---
+                loadData() {
+                    const users = localStorage.getItem('control360_users');
+                    const reports = localStorage.getItem('control360_reports');
+                    if (users) this.db.users = JSON.parse(users);
+                    if (reports) this.db.reports = JSON.parse(reports);
+                },
+                saveData() {
+                    localStorage.setItem('control360_users', JSON.stringify(this.db.users));
+                    localStorage.setItem('control360_reports', JSON.stringify(this.db.reports));
+                },
+
+                // --- Autenticación y Navegación ---
+                initLogin() {
+                    const loginForm = document.getElementById('login-form');
+                    const logoutBtn = document.getElementById('logout-button');
+                    const loginError = document.getElementById('login-error');
+
+                    loginForm.addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        const user = document.getElementById('username').value;
+                        const pass = document.getElementById('password').value;
+                        
+                        const foundUser = this.db.users.find(u => u.user === user && u.pass === pass);
+                        
+                        if (foundUser) {
+                            this.currentUser = foundUser;
+                            this.navigate('app-container');
+                            this.navigateApp('dashboard-page');
+                            this.setupUIForUser();
+                            loginError.textContent = '';
+                            document.getElementById('username').value = '';
+                            document.getElementById('password').value = '';
+                        } else {
+                            loginError.textContent = 'Usuario o contraseña incorrectos.';
+                        }
+                    });
+
+                    logoutBtn.addEventListener('click', () => {
+                        this.currentUser = null;
+                        this.navigate('login-page');
+                    });
+                },
+                
+                setupUIForUser() {
+                    const userSpan = document.getElementById('current-user');
+                    const adminLink = document.getElementById('admin-nav-link');
+                    if (this.currentUser) {
+                        userSpan.textContent = `Usuario: ${this.currentUser.user} (${this.currentUser.role})`;
+                        if (this.currentUser.role === 'admin') {
+                            adminLink.style.display = 'block';
+                        } else {
+                            adminLink.style.display = 'none';
+                        }
+                    }
+                },
+
+                initNavigation() {
+                    const navLinks = document.querySelectorAll('.nav-link');
+                    navLinks.forEach(link => {
+                        link.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            const pageId = e.target.getAttribute('data-page');
+                            this.navigateApp(pageId);
+                        });
+                    });
+
+                    document.getElementById('back-to-search-btn').addEventListener('click', () => {
+                        this.navigateApp('view-reports-page');
+                    });
+                },
+
+                navigate(pageId) {
+                    document.querySelectorAll('.page').forEach(page => {
+                        page.classList.remove('active');
+                    });
+                    document.getElementById(pageId).classList.add('active');
+                    this.currentPage = pageId;
+                },
+
+                navigateApp(pageId) {
+                    document.querySelectorAll('.app-page').forEach(page => {
+                        page.classList.remove('active');
+                    });
+                    document.getElementById(pageId).classList.add('active');
+
+                    // Lógica específica al cargar una página
+                    if (pageId === 'dashboard-page') this.renderDashboard();
+                    if (pageId === 'admin-page') this.renderAdminPanel();
+                    if (pageId === 'new-report-page') this.resetNewReportForm();
+                    if (pageId === 'view-reports-page') this.resetSearchPage();
+                },
+
+                // --- Lógica del Tablero (Dashboard) ---
+                renderDashboard() {
+                    const alertsContainer = document.getElementById('dashboard-alerts');
+                    const recentContainer = document.getElementById('dashboard-recent');
+                    
+                    alertsContainer.innerHTML = '';
+                    recentContainer.innerHTML = '';
+
+                    let overdueFound = false;
+                    const sortedReports = [...this.db.reports].sort((a, b) => new Date(b.header.fecha_inspeccion) - new Date(a.header.fecha_inspeccion));
+
+                    // 1. Verificar servicios vencidos
+                    // Usamos un Map para solo obtener el último reporte de cada placa
+                    const lastReportByPlaca = new Map();
+                    for (const report of sortedReports) {
+                        if (!lastReportByPlaca.has(report.header.placa)) {
+                            lastReportByPlaca.set(report.header.placa, report);
+                        }
+                    }
+                    
+                    lastReportByPlaca.forEach(report => {
+                        const kmActual = parseFloat(report.header.km_actual);
+                        const kmProximo = parseFloat(report.header.km_proximo_servicio);
+                        
+                        if (kmActual > kmProximo) {
+                            overdueFound = true;
+                            const kmDiff = (kmActual - kmProximo).toLocaleString('es-GT');
+                            alertsContainer.innerHTML += `
+                                <div class="p-3 bg-red-200 rounded-md shadow-sm">
+                                    <p class="font-semibold text-red-800">Placa: ${report.header.placa}</p>
+                                    <p class="text-sm text-red-700">Piloto: ${report.header.piloto_nombre}</p>
+                                    <p class="text-sm text-red-700">Excedido por: ${kmDiff} km (Actual: ${kmActual.toLocaleString('es-GT')} km)</p>
+                                </div>
+                            `;
+                        }
+                    });
+
+                    if (!overdueFound) {
+                        alertsContainer.innerHTML = '<p class="text-gray-700">No hay vehículos con servicio vencido.</p>';
+                    }
+
+                    // 2. Mostrar reportes recientes
+                    const recent = sortedReports.slice(0, 5);
+                    if (recent.length === 0) {
+                        recentContainer.innerHTML = '<p class="text-gray-500">No hay inspecciones recientes.</p>';
+                    } else {
+                        recent.forEach(report => {
+                            recentContainer.innerHTML += `
+                                <div class="p-4 border border-gray-200 rounded-md hover:bg-gray-50 transition">
+                                    <div class="flex justify-between items-center">
+                                        <p class="font-semibold text-blue-600">${report.header.placa} - ${report.header.piloto_nombre}</p>
+                                        <span class="text-sm text-gray-500">${new Date(report.header.fecha_inspeccion).toLocaleDateString('es-GT')}</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600">Vehículo: ${report.header.vehiculo} ${report.header.modelo}</p>
+                                </div>
+                            `;
+                        });
+                    }
+                },
+
+                // --- Lógica de Formularios ---
+                initForms() {
+                    // 1. Formulario de Nuevo Reporte
+                    document.getElementById('new-report-form').addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        if (sigPilotoPad.isEmpty() || sigSupervisorPad.isEmpty()) {
+                            alert('Se requieren ambas firmas (Piloto y Supervisor) para guardar el reporte.');
+                            return;
+                        }
+                        this.handleNewReportSubmit();
+                    });
+
+                    // 2. Formulario de Búsqueda
+                    document.getElementById('search-form').addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        this.handleReportSearch();
+                    });
+
+                    // 3. Formulario de Admin (Crear Usuario)
+                    document.getElementById('create-user-form').addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        this.handleCreateUser();
+                    });
+                },
+
+                // --- Lógica de Firmas ---
+                initSignaturePads() {
+                    const pilCanvas = document.getElementById('sig-piloto-canvas');
+                    const supCanvas = document.getElementById('sig-supervisor-canvas');
+                    
+                    // Ajustar el tamaño del canvas para alta resolución
+                    const resizeCanvas = (canvas) => {
+                        const ratio = Math.max(window.devicePixelRatio || 1, 1);
+                        canvas.width = canvas.offsetWidth * ratio;
+                        canvas.height = canvas.offsetHeight * ratio;
+                        canvas.getContext("2d").scale(ratio, ratio);
+                    };
+                    
+                    resizeCanvas(pilCanvas);
+                    resizeCanvas(supCanvas);
+
+                    sigPilotoPad = new SignaturePad(pilCanvas);
+                    sigSupervisorPad = new SignaturePad(supCanvas);
+                    
+                    document.getElementById('clear-sig-piloto').addEventListener('click', () => sigPilotoPad.clear());
+                    document.getElementById('clear-sig-supervisor').addEventListener('click', () => sigSupervisorPad.clear());
+                },
+
+                resetNewReportForm() {
+                    document.getElementById('new-report-form').reset();
+                    if (sigPilotoPad) sigPilotoPad.clear();
+                    if (sigSupervisorPad) sigSupervisorPad.clear();
+                },
+
+                // --- Lógica de Reportes ---
+                handleNewReportSubmit() {
+                    const form = document.getElementById('new-report-form');
+                    const formData = new FormData(form);
+                    const report = {
+                        id: `rep_${new Date().getTime()}`, // ID único
+                        header: {},
+                        checklist: [],
+                        observaciones: '',
+                        signatures: {}
+                    };
+
+                    // 1. Capturar Header
+                    const headerFields = ['marca_promocionar', 'fecha_inicio_campana', 'fecha_fin_campana', 'fecha_inspeccion', 'vehiculo', 'placa', 'modelo', 'piloto_nombre', 'piloto_licencia_tipo', 'piloto_licencia_venc', 'tarjeta_seguro', 'fecha_servicio_anterior', 'km_proximo_servicio', 'km_actual'];
+                    for (const field of headerFields) {
+                        report.header[field] = formData.get(field);
+                    }
+                    
+                    // 2. Capturar Checklist
+                    const tableRows = document.querySelectorAll('#checklist-table tbody tr');
+                    tableRows.forEach(row => {
+                        if (row.children.length < 6) return; // Omitir filas de categoría
+                        
+                        const category = row.children[0].textContent;
+                        const item = row.children[1].textContent;
+                        const radioName = row.querySelector('input[type="radio"]').name;
+                        const status = formData.get(radioName);
+                        const observationName = row.querySelector('input[type="text"]').name;
+                        const observation = formData.get(observationName);
+                        
+                        report.checklist.push({ category, item, status, observation });
+                    });
+
+                    // 3. Capturar Observaciones Adicionales
+                    report.observaciones = formData.get('observaciones_adicionales');
+                    
+                    // 4. Capturar Firmas (como imagen Base64)
+                    report.signatures = {
+                        piloto: sigPilotoPad.toDataURL('image/png'),
+                        supervisor: sigSupervisorPad.toDataURL('image/png')
+                    };
+
+                    // 5. Guardar
+                    this.db.reports.push(report);
+                    this.saveData();
+
+                    alert('¡Inspección guardada con éxito!');
+                    this.resetNewReportForm();
+                    this.navigateApp('dashboard-page');
+                },
+
+                handleReportSearch() {
+                    const placa = document.getElementById('search-placa').value.toLowerCase().trim();
+                    const piloto = document.getElementById('search-piloto').value.toLowerCase().trim();
+                    const resultsContainer = document.getElementById('search-results-container');
+                    
+                    if (!placa && !piloto) {
+                        resultsContainer.innerHTML = '<p class="text-gray-500">Debe ingresar al menos una placa o un nombre de piloto.</p>';
+                        return;
+                    }
+
+                    const results = this.db.reports.filter(report => {
+                        const placaMatch = placa ? report.header.placa.toLowerCase().includes(placa) : false;
+                        const pilotoMatch = piloto ? report.header.piloto_nombre.toLowerCase().includes(piloto) : false;
+                        return placaMatch || pilotoMatch;
+                    }).sort((a, b) => new Date(b.header.fecha_inspeccion) - new Date(a.header.fecha_inspeccion));
+
+                    if (results.length === 0) {
+                        resultsContainer.innerHTML = '<p class="text-gray-500">No se encontraron reportes con esos criterios.</p>';
+                    } else {
+                        resultsContainer.innerHTML = results.map(report => `
+                            <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+                                <div>
+                                    <p class="font-semibold text-blue-600">${report.header.placa} - ${report.header.piloto_nombre}</p>
+                                    <p class="text-sm text-gray-600">Fecha: ${new Date(report.header.fecha_inspeccion).toLocaleDateString('es-GT')}</p>
+                                </div>
+                                <button class="view-report-btn bg-blue-500 text-white px-4 py-1 rounded-md text-sm hover:bg-blue-600" data-report-id="${report.id}">
+                                    Ver Detalle
+                                </button>
+                            </div>
+                        `).join('');
+
+                        // Añadir listeners a los botones de "Ver Detalle"
+                        document.querySelectorAll('.view-report-btn').forEach(btn => {
+                            btn.addEventListener('click', (e) => {
+                                const reportId = e.target.getAttribute('data-report-id');
+                                this.renderReportDetail(reportId);
+                            });
+                        });
+                    }
+                },
+                
+                resetSearchPage() {
+                    document.getElementById('search-form').reset();
+                    document.getElementById('search-results-container').innerHTML = '<p class="text-gray-500">Ingrese un término de búsqueda para ver los reportes.</p>';
+                },
+
+                renderReportDetail(reportId) {
+                    const report = this.db.reports.find(r => r.id === reportId);
+                    if (!report) return;
+
+                    const container = document.getElementById('pdf-content');
+                    
+                    // Asignar ID al botón de eliminar (si es admin)
+                    const deleteBtn = document.getElementById('delete-report-btn');
+                    if (this.currentUser.role === 'admin') {
+                        deleteBtn.style.display = 'inline-block';
+                        deleteBtn.setAttribute('data-report-id', reportId);
+                        // Remover listener anterior y añadir nuevo
+                        deleteBtn.replaceWith(deleteBtn.cloneNode(true));
+                        document.getElementById('delete-report-btn').addEventListener('click', () => this.handleDeleteReport(reportId));
+                    } else {
+                        deleteBtn.style.display = 'none';
+                    }
+
+                    // Asignar ID al botón de PDF
+                    const pdfBtn = document.getElementById('export-pdf-btn');
+                    pdfBtn.setAttribute('data-report-id', reportId);
+                    // Remover listener anterior y añadir nuevo
+                    pdfBtn.replaceWith(pdfBtn.cloneNode(true));
+                    document.getElementById('export-pdf-btn').addEventListener('click', () => this.handleGeneratePDF(reportId));
+
+
+                    // --- Construir el HTML del Reporte ---
+                    // Helper para formatear estado
+                    const formatStatus = (status) => {
+                        if (status === 'bueno') return '<span class="font-bold text-green-600">BUENO</span>';
+                        if (status === 'malo') return '<span class="font-bold text-red-600">MALO</span>';
+                        return '<span class="text-gray-500">N/A</span>';
+                    };
+
+                    // 1. Header
+                    let headerHtml = `
+                        <div class="flex justify-between items-start mb-6 border-b-2 border-gray-800 pb-4">
+                            <div>
+                                <h1 class="text-3xl font-bold text-gray-900">Inspección 360 Vehícular</h1>
+                                <p class="text-lg text-gray-700">Placa: <span class="font-semibold">${report.header.placa}</span></p>
+                                <p class="text-lg text-gray-700">Piloto: <span class="font-semibold">${report.header.piloto_nombre}</span></p>
+                            </div>
+                            <img src="https://i.imgur.com/g8cT2Wd.png" alt="Logo" class="w-32">
+                        </div>
+                        
+                        <div class="grid grid-cols-3 gap-x-6 gap-y-3 text-sm mb-6">
+                            <p><strong>Fecha Inspección:</strong> ${new Date(report.header.fecha_inspeccion).toLocaleDateString('es-GT')}</p>
+                            <p><strong>Vehículo:</strong> ${report.header.vehiculo}</p>
+                            <p><strong>Modelo:</strong> ${report.header.modelo}</p>
+                            <p><strong>Licencia:</strong> ${report.header.piloto_licencia_tipo}</p>
+                            <p><strong>Vencimiento:</strong> ${new Date(report.header.piloto_licencia_venc).toLocaleDateString('es-GT')}</p>
+                            <p><strong>Seguro:</strong> ${report.header.tarjeta_seguro}</p>
+                            <p><strong>Marca (Campaña):</strong> ${report.header.marca_promocionar}</p>
+                            <p><strong>Inicio Campaña:</strong> ${new Date(report.header.fecha_inicio_campana).toLocaleDateString('es-GT')}</p>
+                            <p><strong>Fin Campaña:</strong> ${new Date(report.header.fecha_fin_campana).toLocaleDateString('es-GT')}</p>
+                        </div>
+                    `;
+
+                    // 2. Alerta de Kilometraje
+                    const kmActual = parseFloat(report.header.km_actual);
+                    const kmProximo = parseFloat(report.header.km_proximo_servicio);
+                    if (kmActual > kmProximo) {
+                        headerHtml += `
+                            <div class="border-4 border-red-600 p-4 mb-6 bg-red-100">
+                                <h3 class="text-xl font-bold text-red-700 text-center">¡SERVICIO VENCIDO!</h3>
+                                <p class="text-center text-red-600">Excedido por <strong>${(kmActual - kmProximo).toLocaleString('es-GT')} km</strong>.</p>
+                            </div>
+                        `;
+                    }
+                    
+                    headerHtml += `
+                        <div class="grid grid-cols-3 gap-6 mb-6 text-center">
+                            <div class="p-3 bg-gray-100 rounded">
+                                <p class="text-xs font-bold text-gray-600 uppercase">Servicio Anterior</p>
+                                <p class="text-lg font-semibold">${new Date(report.header.fecha_servicio_anterior).toLocaleDateString('es-GT')}</p>
+                            </div>
+                            <div class="p-3 bg-blue-100 rounded">
+                                <p class="text-xs font-bold text-blue-700 uppercase">Km Próximo Servicio</p>
+                                <p class="text-lg font-semibold">${kmProximo.toLocaleString('es-GT')} km</p>
+                            </div>
+                            <div class="p-3 ${kmActual > kmProximo ? 'bg-red-100' : 'bg-green-100'} rounded">
+                                <p class="text-xs font-bold ${kmActual > kmProximo ? 'text-red-700' : 'text-green-700'} uppercase">Km Actual</p>
+                                <p class="text-lg font-semibold">${kmActual.toLocaleString('es-GT')} km</p>
+                            </div>
+                        </div>
+                    `;
+
+                    // 3. Checklist
+                    let checklistHtml = `
+                        <h2 class="text-xl font-bold text-gray-800 mb-4 mt-8 border-b pb-2">Resultados de la Inspección</h2>
+                        <table class="w-full text-sm border-collapse border border-gray-300">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="border border-gray-300 p-2 text-left">Ítem</th>
+                                    <th class="border border-gray-300 p-2 text-center">Estado</th>
+                                    <th class="border border-gray-300 p-2 text-left">Observaciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    
+                    let currentCategory = '';
+                    report.checklist.forEach(item => {
+                        if (item.category !== currentCategory) {
+                            currentCategory = item.category;
+                            checklistHtml += `
+                                <tr class="bg-gray-50">
+                                    <td colspan="3" class="border border-gray-300 p-2 font-semibold text-gray-700">${currentCategory}</td>
+                                </tr>
+                            `;
+                        }
+                        checklistHtml += `
+                            <tr>
+                                <td class="border border-gray-300 p-2">${item.item}</td>
+                                <td class="border border-gray-300 p-2 text-center">${formatStatus(item.status)}</td>
+                                <td class="border border-gray-300 p-2">${item.observation || '---'}</td>
+                            </tr>
+                        `;
+                    });
+                    checklistHtml += '</tbody></table>';
+
+                    // 4. Observaciones y Firmas
+                    let footerHtml = `
+                        <div class="mt-8">
+                            <h3 class="text-lg font-semibold text-gray-800">Observaciones Adicionales:</h3>
+                            <p class="text-sm p-3 bg-gray-50 border rounded-md min-h-[50px] mt-2">${report.observaciones || '---'}</p>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-8 mt-10 pt-6 border-t-2 border-gray-300">
+                            <div>
+                                <h3 class="text-md font-semibold text-gray-800">Firma Piloto Promotor:</h3>
+                                <p class="text-sm mb-2">${report.header.piloto_nombre}</p>
+                                <img src="${report.signatures.piloto}" alt="Firma Piloto" class="w-full border border-gray-400 rounded-md">
+                            </div>
+                            <div>
+                                <h3 class="text-md font-semibold text-gray-800">Firma Supervisor Promociones:</h3>
+                                <p class="text-sm mb-2">${this.currentUser.user}</p>
+                                <img src="${report.signatures.supervisor}" alt="Firma Supervisor" class="w-full border border-gray-400 rounded-md">
+                            </div>
+                        </div>
+                    `;
+
+                    // Unir todo y mostrar
+                    container.innerHTML = headerHtml + checklistHtml + footerHtml;
+                    this.navigateApp('report-detail-page');
+                },
+                
+                handleDeleteReport(reportId) {
+                    if (this.currentUser.role !== 'admin') {
+                        alert('Acción no permitida.');
+                        return;
+                    }
+                    if (confirm(`¿Está seguro que desea eliminar el reporte ${reportId}? Esta acción no se puede deshacer.`)) {
+                        this.db.reports = this.db.reports.filter(r => r.id !== reportId);
+                        this.saveData();
+                        alert('Reporte eliminado.');
+                        this.navigateApp('view-reports-page');
+                        this.resetSearchPage();
+                    }
+                },
+
+                handleGeneratePDF(reportId) {
+                    const report = this.db.reports.find(r => r.id === reportId);
+                    const content = document.getElementById("pdf-content");
+                    const btnContainer = document.querySelector("#report-detail-page > div:first-child");
+
+                    // Ocultar botones para que no salgan en la "foto"
+                    btnContainer.style.display = 'none';
+
+                    h2c(content, {
+                        scale: 2, // Aumentar la escala para mejor resolución
+                        useCORS: true
+                    }).then(canvas => {
+                        const imgData = canvas.toDataURL('image/png');
+                        
+                        // Crear PDF en tamaño CARTA (Letter)
+                        // Ancho: 8.5in, Alto: 11in
+                        const pdf = new jsPDF({
+                            orientation: 'portrait',
+                            unit: 'in',
+                            format: 'letter'
+                        });
+
+                        const pdfWidth = pdf.internal.pageSize.getWidth(); // 8.5
+                        const pdfHeight = pdf.internal.pageSize.getHeight(); // 11
+                        
+                        // Relación de aspecto del canvas
+                        const canvasWidth = canvas.width;
+                        const canvasHeight = canvas.height;
+                        const canvasRatio = canvasHeight / canvasWidth;
+
+                        // Calcular la altura de la imagen en el PDF para que quepa en el ancho
+                        let imgHeight = pdfWidth * canvasRatio;
+                        let heightLeft = imgHeight;
+                        
+                        let position = 0; // Posición Y en el PDF
+
+                        // Añadir la primera página
+                        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+                        heightLeft -= pdfHeight;
+
+                        // Añadir más páginas si el contenido es más largo que 11 pulgadas
+                        while (heightLeft > 0) {
+                            position = heightLeft - imgHeight; // Mover la imagen "hacia arriba"
+                            pdf.addPage();
+                            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+                            heightLeft -= pdfHeight;
+                        }
+
+                        // Guardar el PDF
+                        pdf.save(`Reporte_360_${report.header.placa}_${report.header.fecha_inspeccion}.pdf`);
+                        
+                        // Volver a mostrar los botones
+                        btnContainer.style.display = 'flex';
+                    }).catch(err => {
+                        console.error("Error al generar PDF:", err);
+                        btnContainer.style.display = 'flex';
+                    });
+                },
+
+                // --- Lógica de Administración ---
+                renderAdminPanel() {
+                    const userList = document.getElementById('user-list');
+                    userList.innerHTML = '';
+                    
+                    if (this.currentUser.role !== 'admin') {
+                        this.navigateApp('dashboard-page');
+                        return;
+                    }
+
+                    this.db.users.forEach(user => {
+                        userList.innerHTML += `
+                            <li class="flex justify-between items-center p-3 bg-gray-50 rounded-md">
+                                <div>
+                                    <p class="font-semibold text-gray-800">${user.user}</p>
+                                    <p class="text-sm text-gray-500">${user.role}</p>
+                                </div>
+                                ${user.user !== 'admin' ? 
+                                    `<button class="delete-user-btn text-red-500 hover:text-red-700 text-sm" data-user-id="${user.id}">Eliminar</button>` : 
+                                    '<span class="text-sm text-gray-400">Sistema</span>'}
+                            </li>
+                        `;
+                    });
+
+                    // Listeners para botones de eliminar
+                    document.querySelectorAll('.delete-user-btn').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            const userId = parseInt(e.target.getAttribute('data-user-id'));
+                            this.handleDeleteUser(userId);
+                        });
+                    });
+                },
+
+                handleCreateUser() {
+                    const user = document.getElementById('new-username').value;
+                    const pass = document.getElementById('new-password').value;
+                    const role = document.getElementById('new-role').value;
+                    const successMsg = document.getElementById('admin-success');
+                    
+                    if (!user || !pass) {
+                        alert('Usuario y Contraseña son requeridos.');
+                        return;
+                    }
+                    
+                    const userExists = this.db.users.find(u => u.user === user);
+                    if (userExists) {
+                        alert('Ese nombre de usuario ya existe.');
+                        return;
+                    }
+
+                    const newId = this.db.users.length > 0 ? Math.max(...this.db.users.map(u => u.id)) + 1 : 1;
+                    this.db.users.push({ id: newId, user, pass, role });
+                    this.saveData();
+                    
+                    successMsg.textContent = `¡Usuario "${user}" creado con éxito!`;
+                    document.getElementById('create-user-form').reset();
+                    this.renderAdminPanel();
+                    
+                    setTimeout(() => successMsg.textContent = '', 3000);
+                },
+
+                handleDeleteUser(userId) {
+                    if (confirm('¿Está seguro que desea eliminar este usuario?')) {
+                        this.db.users = this.db.users.filter(u => u.id !== userId);
+                        this.saveData();
+                        this.renderAdminPanel();
+                    }
+                }
+            };
+
+            // --- Iniciar la Aplicación ---
+            App.init();
+
         };
-        localStorage.setItem('users', JSON.stringify([defaultAdmin]));
-      }
-      
-      // Initialize default checklist items if none exist
-      if (!localStorage.getItem('checklistItems')) {
-        const defaultItems = [
-          'Luces delanteras',
-          'Luces traseras',
-          'Luces de freno',
-          'Direccionales',
-          'Limpia parabrisas',
-          'Nivel de aceite',
-          'Nivel de refrigerante',
-          'Estado de llantas',
-          'Presión de llantas',
-          'Frenos',
-          'Cinturones de seguridad',
-          'Espejos',
-          'Bocina',
-          'Documentos del vehículo',
-          'Kit de emergencia'
-        ];
-        localStorage.setItem('checklistItems', JSON.stringify(defaultItems));
-      }
+    </script>
 
-      // Login functionality
-      const loginForm = document.getElementById('login-form');
-      loginForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
-        
-        const users = JSON.parse(localStorage.getItem('users') || '[]');
-        const user = users.find(u => u.username === username && u.password === password);
-        
-        if (user) {
-          // Store current user in session storage
-          sessionStorage.setItem('currentUser', JSON.stringify({
-            username: user.username,
-            fullname: user.fullname,
-            role: user.role
-          }));
-          
-          // Show admin options if user is admin
-          if (user.role === 'admin') {
-            document.getElementById('admin-users-menu').classList.remove('hidden');
-            document.getElementById('mobile-admin-users-menu').classList.remove('hidden');
-          }
-          
-          // Update UI
-          document.getElementById('current-user').textContent = user.fullname;
-          document.getElementById('login-section').classList.add('hidden');
-          document.getElementById('app-container').classList.remove('hidden');
-          
-          // Load initial data
-          loadDashboard();
-        } else {
-          const errorDiv = document.getElementById('login-error');
-          errorDiv.textContent = 'Usuario o contraseña incorrectos';
-          errorDiv.classList.remove('hidden');
-        }
-      });
-      
-      // Logout functionality
-      document.getElementById('logout-btn').addEventListener('click', function() {
-        sessionStorage.removeItem('currentUser');
-        document.getElementById('login-section').classList.remove('hidden');
-        document.getElementById('app-container').classList.add('hidden');
-        document.getElementById('username').value = '';
-        document.getElementById('password').value = '';
-        document.getElementById('login-error').classList.add('hidden');
-      });
-      
-      // Navigation
-      const menuItems = document.querySelectorAll('.menu-item');
-      menuItems.forEach(item => {
-        item.addEventListener('click', function() {
-          const page = this.getAttribute('data-page');
-          switchPage(page);
-          
-          // Update active menu
-          menuItems.forEach(mi => mi.classList.remove('active'));
-          this.classList.add('active');
-          
-          // Close mobile menu if open
-          document.getElementById('mobile-menu').classList.add('hidden');
-        });
-      });
-      
-      // Mobile menu
-      document.getElementById('mobile-menu-button').addEventListener('click', function() {
-        document.getElementById('mobile-menu').classList.remove('hidden');
-      });
-      
-      document.getElementById('close-mobile-menu').addEventListener('click', function() {
-        document.getElementById('mobile-menu').classList.add('hidden');
-      });
-      
-      const mobileMenuItems = document.querySelectorAll('.mobile-menu-item');
-      mobileMenuItems.forEach(item => {
-        item.addEventListener('click', function() {
-          const page = this.getAttribute('data-page');
-          switchPage(page);
-          
-          // Update active menu in desktop view too
-          menuItems.forEach(mi => {
-            if (mi.getAttribute('data-page') === page) {
-              mi.classList.add('active');
-            } else {
-              mi.classList.remove('active');
-            }
-          });
-          
-          // Close mobile menu
-          document.getElementById('mobile-menu').classList.add('hidden');
-        });
-      });
-      
-      // Modal close buttons
-      document.querySelectorAll('.modal-cancel').forEach(button => {
-        button.addEventListener('click', closeModal);
-      });
-      
-      // Initialize date pickers
-      flatpickr("#service-date", {
-        dateFormat: "Y-m-d",
-        defaultDate: "today"
-      });
-      
-      flatpickr("#checklist-date", {
-        dateFormat: "Y-m-d",
-        defaultDate: "today"
-      });
-      
-      // License plate dropdown logic
-      document.getElementById('license-plate').addEventListener('change', function() {
-        const newPlateContainer = document.getElementById('new-plate-container');
-        if (this.value === 'new') {
-          newPlateContainer.classList.remove('hidden');
-        } else {
-          newPlateContainer.classList.add('hidden');
-          if (this.value) {
-            // Auto-fill pilot name based on selected vehicle
-            const vehicles = JSON.parse(localStorage.getItem('vehicles') || '[]');
-            const vehicle = vehicles.find(v => v.licensePlate === this.value);
-            if (vehicle) {
-              document.getElementById('pilot-name').value = vehicle.pilotName;
-              document.getElementById('current-km').value = vehicle.currentKm;
-            }
-          }
-        }
-      });
-      
-      // Dashboard add vehicle button
-      document.getElementById('add-vehicle-btn').addEventListener('click', function() {
-        showVehicleModal();
-      });
-      
-      // Vehicle form submission
-      document.getElementById('vehicle-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        saveVehicle();
-      });
-      
-      // User management
-      document.getElementById('add-user-btn').addEventListener('click', function() {
-        showUserModal();
-      });
-      
-      // User form submission
-      document.getElementById('user-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        saveUser();
-      });
-      
-      // Service form cancel button
-      document.getElementById('cancel-service-btn').addEventListener('click', function() {
-        switchPage('dashboard');
-        document.querySelector('.menu-item[data-page="dashboard"]').classList.add('active');
-        document.querySelector('.menu-item[data-page="service"]').classList.remove('active');
-      });
-      
-      // Service form submission
-      document.getElementById('service-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        saveService();
-      });
-      
-      // Checklist page setup
-      initChecklistPage();
-      
-      // Checklist form cancel button
-      document.getElementById('cancel-checklist-btn').addEventListener('click', function() {
-        switchPage('dashboard');
-        document.querySelector('.menu-item[data-page="dashboard"]').classList.add('active');
-        document.querySelector('.menu-item[data-page="checklist"]').classList.remove('active');
-      });
-      
-      // Checklist form submission
-      document.getElementById('checklist-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        saveChecklist();
-      });
-      
-      // Reports page
-      document.getElementById('report-filter-type').addEventListener('change', function() {
-        const plateContainer = document.getElementById('report-filter-plate-container');
-        const pilotContainer = document.getElementById('report-filter-pilot-container');
-        
-        if (this.value === 'plate') {
-          plateContainer.classList.remove('hidden');
-          pilotContainer.classList.add('hidden');
-        } else {
-          plateContainer.classList.add('hidden');
-          pilotContainer.classList.remove('hidden');
-        }
-      });
-      
-      // Generate report button
-      document.getElementById('generate-report-btn').addEventListener('click', generateReport);
-      
-      // Print report button
-      document.getElementById('print-report-btn').addEventListener('click', function() {
-        window.print();
-      });
-      
-      // Initialize signature pad for checklist
-      let signaturePad;
-      document.getElementById('clear-signature').addEventListener('click', function() {
-        if (signaturePad) signaturePad.clear();
-      });
-      
-      // Function to initialize signature pad
-      function initSignaturePad() {
-        const canvas = document.getElementById('signature-pad');
-        signaturePad = new SignaturePad(canvas, {
-          backgroundColor: 'rgba(255, 255, 255, 0)',
-          penColor: 'blue'
-        });
-        
-        // Resize canvas for better display
-        function resizeCanvas() {
-          const ratio = Math.max(window.devicePixelRatio || 1, 1);
-          canvas.width = canvas.offsetWidth * ratio;
-          canvas.height = canvas.offsetHeight * ratio;
-          canvas.getContext("2d").scale(ratio, ratio);
-          signaturePad.clear(); // Clear the canvas
-        }
-        
-        window.addEventListener("resize", resizeCanvas);
-        resizeCanvas();
-      }
-      
-      // Vehicle search functionality
-      document.getElementById('vehicle-search').addEventListener('input', function() {
-        const searchTerm = this.value.toLowerCase();
-        const rows = document.querySelectorAll('#vehicle-table-body tr');
-        
-        rows.forEach(row => {
-          const licensePlate = row.querySelector('td:first-child')?.textContent.toLowerCase() || '';
-          const pilotName = row.querySelector('td:nth-child(2)')?.textContent.toLowerCase() || '';
-          
-          if (licensePlate.includes(searchTerm) || pilotName.includes(searchTerm)) {
-            row.classList.remove('hidden');
-          } else {
-            row.classList.add('hidden');
-          }
-        });
-      });
-      
-      // Helper Functions
-      function switchPage(pageName) {
-        // Hide all pages
-        document.querySelectorAll('.page-content').forEach(page => {
-          page.classList.add('hidden');
-        });
-        
-        // Show selected page
-        const selectedPage = document.getElementById(`${pageName}-page`);
-        if (selectedPage) {
-          selectedPage.classList.remove('hidden');
-          
-          // Page-specific initializations
-          if (pageName === 'dashboard') {
-            loadDashboard();
-          } else if (pageName === 'service') {
-            loadServiceForm();
-          } else if (pageName === 'checklist') {
-            loadChecklistForm();
-            // Initialize signature pad when checklist page is shown
-            setTimeout(initSignaturePad, 100);
-          } else if (pageName === 'reports') {
-            loadReportFilters();
-          } else if (pageName === 'users') {
-            loadUsers();
-          }
-        }
-      }
-      
-      function loadDashboard() {
-        // Load vehicle stats
-        const vehicles = JSON.parse(localStorage.getItem('vehicles') || '[]');
-        document.getElementById('total-vehicles').textContent = vehicles.length;
-        
-        const services = JSON.parse(localStorage.getItem('services') || '[]');
-        document.getElementById('total-services').textContent = services.length;
-        
-        let overdueCount = 0;
-        vehicles.forEach(vehicle => {
-          if (parseInt(vehicle.currentKm) >= parseInt(vehicle.nextServiceKm)) {
-            overdueCount++;
-          }
-        });
-        document.getElementById('overdue-services').textContent = overdueCount;
-        
-        // Load vehicle table
-        const tableBody = document.getElementById('vehicle-table-body');
-        tableBody.innerHTML = '';
-        
-        if (vehicles.length === 0) {
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td colspan="7" class="px-4 py-4 text-center text-gray-500">
-              No hay vehículos registrados
-            </td>
-          `;
-          tableBody.appendChild(row);
-        } else {
-          vehicles.forEach(vehicle => {
-            const isOverdue = parseInt(vehicle.currentKm) >= parseInt(vehicle.nextServiceKm);
-            const lastService = services.filter(s => s.licensePlate === vehicle.licensePlate)
-              .sort((a, b) => new Date(b.serviceDate) - new Date(a.serviceDate))[0];
-            
-            const row = document.createElement('tr');
-            row.innerHTML = `
-              <td class="px-4 py-3 whitespace-nowrap">${vehicle.licensePlate}</td>
-              <td class="px-4 py-3">${vehicle.pilotName}</td>
-              <td class="px-4 py-3">${lastService ? lastService.serviceDate : 'N/A'}</td>
-              <td class="px-4 py-3">${vehicle.currentKm} km</td>
-              <td class="px-4 py-3">${vehicle.nextServiceKm} km</td>
-              <td class="px-4 py-3">
-                ${isOverdue ? 
-                  '<span class="overdue"><i class="fas fa-exclamation-circle mr-1"></i> Vencido</span>' : 
-                  '<span class="text-green-600"><i class="fas fa-check-circle mr-1"></i> Al día</span>'}
-              </td>
-              <td class="px-4 py-3 text-right">
-                <button class="text-blue-600 hover:text-blue-800 mr-3 edit-vehicle" data-plate="${vehicle.licensePlate}">
-                  <i class="fas fa-edit"></i>
-                </button>
-                <button class="text-red-600 hover:text-red-800 delete-vehicle" data-plate="${vehicle.licensePlate}">
-                  <i class="fas fa-trash-alt"></i>
-                </button>
-              </td>
-            `;
-            tableBody.appendChild(row);
-          });
-          
-          // Add event listeners for edit/delete buttons
-          document.querySelectorAll('.edit-vehicle').forEach(btn => {
-            btn.addEventListener('click', function() {
-              const plate = this.getAttribute('data-plate');
-              editVehicle(plate);
-            });
-          });
-          
-          document.querySelectorAll('.delete-vehicle').forEach(btn => {
-            btn.addEventListener('click', function() {
-              const plate = this.getAttribute('data-plate');
-              confirmDeleteVehicle(plate);
-            });
-          });
-        }
-      }
-      
-      function loadServiceForm() {
-        // Reset form
-        document.getElementById('service-form').reset();
-        document.getElementById('new-plate-container').classList.add('hidden');
-        
-        // Populate license plate dropdown
-        const licensePlateSelect = document.getElementById('license-plate');
-        licensePlateSelect.innerHTML = '<option value="">-- Seleccionar placa --</option>' +
-                                      '<option value="new">+ Ingresar nueva placa</option>';
-        
-        const vehicles = JSON.parse(localStorage.getItem('vehicles') || '[]');
-        vehicles.forEach(vehicle => {
-          const option = document.createElement('option');
-          option.value = vehicle.licensePlate;
-          option.textContent = vehicle.licensePlate;
-          licensePlateSelect.appendChild(option);
-        });
-      }
-      
-      function loadChecklistForm() {
-        // Reset form
-        document.getElementById('checklist-form').reset();
-        
-        // Populate license plate dropdown
-        const licensePlateSelect = document.getElementById('checklist-license-plate');
-        licensePlateSelect.innerHTML = '<option value="">-- Seleccionar placa --</option>';
-        
-        const vehicles = JSON.parse(localStorage.getItem('vehicles') || '[]');
-        vehicles.forEach(vehicle => {
-          const option = document.createElement('option');
-          option.value = vehicle.licensePlate;
-          option.textContent = vehicle.licensePlate;
-          licensePlateSelect.appendChild(option);
-        });
-        
-        // Load checklist items
-        const items = JSON.parse(localStorage.getItem('checklistItems') || '[]');
-        const tableBody = document.getElementById('checklist-items');
-        tableBody.innerHTML = '';
-        
-        items.forEach((item, index) => {
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td class="py-2 px-4 border-b">${item}</td>
-            <td class="py-2 px-4 border-b text-center">
-              <div class="custom-checkbox mx-auto" data-index="${index}" data-status="good">
-                <i class="fas fa-check hidden"></i>
-              </div>
-            </td>
-            <td class="py-2 px-4 border-b text-center">
-              <div class="custom-checkbox mx-auto" data-index="${index}" data-status="bad">
-                <i class="fas fa-times hidden"></i>
-              </div>
-            </td>
-            <td class="py-2 px-4 border-b text-center">
-              <div class="custom-checkbox mx-auto" data-index="${index}" data-status="na">
-                <i class="fas fa-minus hidden"></i>
-              </div>
-            </td>
-            <td class="py-2 px-4 border-b">
-              <input type="text" class="form-input text-sm py-1" name="observation-${index}" placeholder="Observación">
-            </td>
-          `;
-          tableBody.appendChild(row);
-        });
-        
-        // Add event listeners to checkboxes
-        document.querySelectorAll('.custom-checkbox').forEach(checkbox => {
-          checkbox.addEventListener('click', function() {
-            const index = this.getAttribute('data-index');
-            const status = this.getAttribute('data-status');
-            
-            // Uncheck all checkboxes in the same row
-            document.querySelectorAll(`.custom-checkbox[data-index="${index}"]`).forEach(cb => {
-              cb.classList.remove('checked');
-              cb.querySelector('i').classList.add('hidden');
-            });
-            
-            // Check the clicked checkbox
-            this.classList.add('checked');
-            if (status === 'bad') this.classList.add('bad');
-            if (status === 'na') this.classList.add('na');
-            this.querySelector('i').classList.remove('hidden');
-          });
-        });
-      }
-      
-      function initChecklistPage() {
-        // This function sets up the initial checklist page
-        const items = JSON.parse(localStorage.getItem('checklistItems') || '[]');
-        if (items.length === 0) {
-          // If no items in storage, we'll populate with default items
-          // (But this should already be handled in the initial setup)
-        }
-      }
-      
-      function loadReportFilters() {
-        // Populate plate filter
-        const plateSelect = document.getElementById('report-filter-plate');
-        plateSelect.innerHTML = '<option value="">-- Todas las placas --</option>';
-        
-        const vehicles = JSON.parse(localStorage.getItem('vehicles') || '[]');
-        vehicles.forEach(vehicle => {
-          const option = document.createElement('option');
-          option.value = vehicle.licensePlate;
-          option.textContent = vehicle.licensePlate;
-          plateSelect.appendChild(option);
-        });
-        
-        // Populate pilot filter
-        const pilotSelect = document.getElementById('report-filter-pilot');
-        pilotSelect.innerHTML = '<option value="">-- Todos los pilotos --</option>';
-        
-        // Get unique pilot names
-        const pilots = [...new Set(vehicles.map(vehicle => vehicle.pilotName))];
-        pilots.forEach(pilot => {
-          const option = document.createElement('option');
-          option.value = pilot;
-          option.textContent = pilot;
-          pilotSelect.appendChild(option);
-        });
-        
-        // Hide report results initially
-        document.getElementById('report-results').classList.add('hidden');
-        document.getElementById('print-report-btn').classList.add('hidden');
-      }
-      
-      function generateReport() {
-        const filterType = document.getElementById('report-filter-type').value;
-        let filterValue;
-        let filterName;
-        
-        if (filterType === 'plate') {
-          filterValue = document.getElementById('report-filter-plate').value;
-          filterName = 'placa';
-        } else {
-          filterValue = document.getElementById('report-filter-pilot').value;
-          filterName = 'piloto';
-        }
-        
-        // Get all services
-        let services = JSON.parse(localStorage.getItem('services') || '[]');
-        
-        // Filter by selected criteria
-        if (filterValue) {
-          if (filterType === 'plate') {
-            services = services.filter(service => service.licensePlate === filterValue);
-          } else {
-            services = services.filter(service => service.pilotName === filterValue);
-          }
-        }
-        
-        // Sort by date (newest first)
-        services.sort((a, b) => new Date(b.serviceDate) - new Date(a.serviceDate));
-        
-        // Update report summary
-        const summary = document.getElementById('report-summary');
-        if (filterValue) {
-          summary.textContent = `Filtrando por ${filterName}: ${filterValue}`;
-        } else {
-          summary.textContent = 'Mostrando todos los registros';
-        }
-        
-        // Update report table
-        const tableBody = document.getElementById('report-table-body');
-        tableBody.innerHTML = '';
-        
-        if (services.length === 0) {
-          document.getElementById('no-report-data').classList.remove('hidden');
-          document.getElementById('report-results').classList.remove('hidden');
-          document.getElementById('print-report-btn').classList.add('hidden');
-        } else {
-          document.getElementById('no-report-data').classList.add('hidden');
-          document.getElementById('report-results').classList.remove('hidden');
-          document.getElementById('print-report-btn').classList.remove('hidden');
-          
-          services.forEach(service => {
-            const isOverdue = parseInt(service.currentKm) >= parseInt(service.nextServiceKm);
-            const checklistStatus = service.checklist ? 'Completada' : 'No completada';
-            
-            const row = document.createElement('tr');
-            row.innerHTML = `
-              <td class="px-4 py-3">${service.licensePlate}</td>
-              <td class="px-4 py-3">${service.pilotName}</td>
-              <td class="px-4 py-3">${service.serviceDate}</td>
-              <td class="px-4 py-3">${service.currentKm} km</td>
-              <td class="px-4 py-3">${service.nextServiceKm} km</td>
-              <td class="px-4 py-3">
-                ${isOverdue ? 
-                  '<span class="text-red-600"><i class="fas fa-exclamation-circle mr-1"></i> Vencido</span>' : 
-                  '<span class="text-green-600"><i class="fas fa-check-circle mr-1"></i> Al día</span>'}
-              </td>
-              <td class="px-4 py-3">${service.observations || 'Sin observaciones'}</td>
-            `;
-            tableBody.appendChild(row);
-          });
-        }
-      }
-      
-      function loadUsers() {
-        const users = JSON.parse(localStorage.getItem('users') || '[]');
-        const tableBody = document.getElementById('users-table-body');
-        tableBody.innerHTML = '';
-        
-        users.forEach(user => {
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td class="px-4 py-3">${user.fullname}</td>
-            <td class="px-4 py-3">${user.username}</td>
-            <td class="px-4 py-3">
-              <span class="px-2 py-1 rounded text-xs ${user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}">
-                ${user.role === 'admin' ? 'Administrador' : 'Invitado'}
-              </span>
-            </td>
-            <td class="px-4 py-3 text-right">
-              <button class="text-blue-600 hover:text-blue-800 mr-3 edit-user" data-username="${user.username}">
-                <i class="fas fa-edit"></i>
-              </button>
-              <button class="text-red-600 hover:text-red-800 delete-user" data-username="${user.username}">
-                <i class="fas fa-trash-alt"></i>
-              </button>
-            </td>
-          `;
-          tableBody.appendChild(row);
-        });
-        
-        // Add event listeners for edit/delete buttons
-        document.querySelectorAll('.edit-user').forEach(btn => {
-          btn.addEventListener('click', function() {
-            const username = this.getAttribute('data-username');
-            editUser(username);
-          });
-        });
-        
-        document.querySelectorAll('.delete-user').forEach(btn => {
-          btn.addEventListener('click', function() {
-            const username = this.getAttribute('data-username');
-            confirmDeleteUser(username);
-          });
-        });
-      }
-      
-      // Modal Functions
-      function showModal(contentId) {
-        const modalContainer = document.getElementById('modal-container');
-        const modalContent = document.getElementById('modal-content');
-        const content = document.getElementById(contentId).innerHTML;
-        
-        modalContent.innerHTML = content;
-        modalContainer.classList.remove('hidden');
-        
-        // Add event listeners to newly added cancel buttons
-        modalContainer.querySelectorAll('.modal-cancel').forEach(btn => {
-          btn.addEventListener('click', closeModal);
-        });
-      }
-      
-      function closeModal() {
-        document.getElementById('modal-container').classList.add('hidden');
-      }
-      
-      function showVehicleModal(vehicle = null) {
-        showModal('vehicle-modal-content');
-        
-        // Set form title
-        const title = document.getElementById('vehicle-modal-title');
-        title.textContent = vehicle ? 'Editar Vehículo' : 'Agregar Vehículo';
-        
-        // Populate form if editing
-        if (vehicle) {
-          document.getElementById('modal-license-plate').value = vehicle.licensePlate;
-          document.getElementById('modal-license-plate').readOnly = true; // Can't change plate when editing
-          document.getElementById('modal-pilot-name').value = vehicle.pilotName;
-          document.getElementById('modal-current-km').value = vehicle.currentKm;
-          document.getElementById('modal-next-service-km').value = vehicle.nextServiceKm;
-        } else {
-          document.getElementById('modal-license-plate').readOnly = false;
-          document.getElementById('vehicle-form').reset();
-        }
-        
-        // Update form submission handler
-        const form = document.getElementById('vehicle-form');
-        form.onsubmit = function(e) {
-          e.preventDefault();
-          saveVehicle(vehicle);
-        };
-      }
-      
-      function saveVehicle(existingVehicle = null) {
-        const licensePlate = document.getElementById('modal-license-plate').value;
-        const pilotName = document.getElementById('modal-pilot-name').value;
-        const currentKm = document.getElementById('modal-current-km').value;
-        const nextServiceKm = document.getElementById('modal-next-service-km').value;
-        
-        // Validation
-        if (!licensePlate || !pilotName || !currentKm || !nextServiceKm) {
-          showToast('Por favor complete todos los campos', 'error');
-          return;
-        }
-        
-        if (parseInt(currentKm) >= parseInt(nextServiceKm)) {
-          showToast('El kilometraje del próximo servicio debe ser mayor al actual', 'warning');
-          return;
-        }
-        
-        // Get existing vehicles
-        const vehicles = JSON.parse(localStorage.getItem('vehicles') || '[]');
-        
-        // Check if license plate already exists (for new vehicles)
-        if (!existingVehicle && vehicles.some(v => v.licensePlate === licensePlate)) {
-          showToast('Ya existe un vehículo con esta placa', 'error');
-          return;
-        }
-        
-        // Create or update vehicle
-        const vehicle = {
-          licensePlate: licensePlate,
-          pilotName: pilotName,
-          currentKm: currentKm,
-          nextServiceKm: nextServiceKm,
-          lastUpdated: new Date().toISOString()
-        };
-        
-        if (existingVehicle) {
-          // Update existing vehicle
-          const index = vehicles.findIndex(v => v.licensePlate === licensePlate);
-          if (index !== -1) {
-            vehicles[index] = vehicle;
-          }
-        } else {
-          // Add new vehicle
-          vehicles.push(vehicle);
-        }
-        
-        // Save to localStorage
-        localStorage.setItem('vehicles', JSON.stringify(vehicles));
-        
-        // Close modal and refresh dashboard
-        closeModal();
-        loadDashboard();
-        showToast(`Vehículo ${existingVehicle ? 'actualizado' : 'agregado'} con éxito`, 'success');
-      }
-      
-      function editVehicle(licensePlate) {
-        const vehicles = JSON.parse(localStorage.getItem('vehicles') || '[]');
-        const vehicle = vehicles.find(v => v.licensePlate === licensePlate);
-        if (vehicle) {
-          showVehicleModal(vehicle);
-        }
-      }
-      
-      function confirmDeleteVehicle(licensePlate) {
-        showModal('confirm-modal-content');
-        
-        document.getElementById('confirm-modal-title').textContent = 'Eliminar Vehículo';
-        document.getElementById('confirm-modal-message').textContent = `¿Está seguro que desea eliminar el vehículo con placa ${licensePlate}? Esta acción no se puede deshacer.`;
-        
-        document.getElementById('confirm-modal-cancel').addEventListener('click', closeModal);
-        document.getElementById('confirm-modal-confirm').addEventListener('click', function() {
-          deleteVehicle(licensePlate);
-          closeModal();
-        });
-      }
-      
-      function deleteVehicle(licensePlate) {
-        // Delete vehicle
-        const vehicles = JSON.parse(localStorage.getItem('vehicles') || '[]');
-        const updatedVehicles = vehicles.filter(v => v.licensePlate !== licensePlate);
-        localStorage.setItem('vehicles', JSON.stringify(updatedVehicles));
-        
-        // Also delete associated services
-        const services = JSON.parse(localStorage.getItem('services') || '[]');
-        const updatedServices = services.filter(s => s.licensePlate !== licensePlate);
-        localStorage.setItem('services', JSON.stringify(updatedServices));
-        
-        // Refresh dashboard
-        loadDashboard();
-        showToast('Vehículo eliminado con éxito', 'success');
-      }
-      
-      function showUserModal(user = null) {
-        showModal('user-modal-content');
-        
-        // Set form title
-        const title = document.getElementById('user-modal-title');
-        title.textContent = user ? 'Editar Usuario' : 'Agregar Usuario';
-        
-        // Populate form if editing
-        if (user) {
-          document.getElementById('modal-fullname').value = user.fullname;
-          document.getElementById('modal-username').value = user.username;
-          document.getElementById('modal-username').readOnly = true; // Can't change username when editing
-          document.getElementById('modal-password').value = ''; // Don't show password, require new one
-          document.getElementById('modal-role').value = user.role;
-        } else {
-          document.getElementById('modal-username').readOnly = false;
-          document.getElementById('user-form').reset();
-        }
-        
-        // Update form submission handler
-        const form = document.getElementById('user-form');
-        form.onsubmit = function(e) {
-          e.preventDefault();
-          saveUser(user);
-        };
-      }
-      
-      function saveUser(existingUser = null) {
-        const fullname = document.getElementById('modal-fullname').value;
-        const username = document.getElementById('modal-username').value;
-        const password = document.getElementById('modal-password').value;
-        const role = document.getElementById('modal-role').value;
-        
-        // Validation
-        if (!fullname || !username || (!existingUser && !password) || !role) {
-          showToast('Por favor complete todos los campos', 'error');
-          return;
-        }
-        
-        // Get existing users
-        const users = JSON.parse(localStorage.getItem('users') || '[]');
-        
-        // Check if username already exists (for new users)
-        if (!existingUser && users.some(u => u.username === username)) {
-          showToast('Ya existe un usuario con este nombre de usuario', 'error');
-          return;
-        }
-        
-        // Create or update user
-        const user = {
-          fullname: fullname,
-          username: username,
-          password: existingUser && !password ? existingUser.password : password,
-          role: role
-        };
-        
-        if (existingUser) {
-          // Update existing user
-          const index = users.findIndex(u => u.username === username);
-          if (index !== -1) {
-            users[index] = user;
-          }
-        } else {
-          // Add new user
-          users.push(user);
-        }
-        
-        // Save to localStorage
-        localStorage.setItem('users', JSON.stringify(users));
-        
-        // Close modal and refresh users list
-        closeModal();
-        loadUsers();
-        showToast(`Usuario ${existingUser ? 'actualizado' : 'agregado'} con éxito`, 'success');
-      }
-      
-      function editUser(username) {
-        const users = JSON.parse(localStorage.getItem('users') || '[]');
-        const user = users.find(u => u.username === username);
-        if (user) {
-          showUserModal(user);
-        }
-      }
-      
-      function confirmDeleteUser(username) {
-        // Don't allow deleting the last admin
-        const users = JSON.parse(localStorage.getItem('users') || '[]');
-        const adminCount = users.filter(u => u.role === 'admin').length;
-        const userToDelete = users.find(u => u.username === username);
-        
-        if (adminCount <= 1 && userToDelete.role === 'admin') {
-          showToast('No se puede eliminar el último administrador', 'error');
-          return;
-        }
-        
-        // Prevent deleting the current user
-        const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
-        if (currentUser.username === username) {
-          showToast('No puede eliminar su propio usuario', 'error');
-          return;
-        }
-        
-        showModal('confirm-modal-content');
-        
-        document.getElementById('confirm-modal-title').textContent = 'Eliminar Usuario';
-        document.getElementById('confirm-modal-message').textContent = `¿Está seguro que desea eliminar el usuario ${username}? Esta acción no se puede deshacer.`;
-        
-        document.getElementById('confirm-modal-cancel').addEventListener('click', closeModal);
-        document.getElementById('confirm-modal-confirm').addEventListener('click', function() {
-          deleteUser(username);
-          closeModal();
-        });
-      }
-      
-      function deleteUser(username) {
-        const users = JSON.parse(localStorage.getItem('users') || '[]');
-        const updatedUsers = users.filter(u => u.username !== username);
-        localStorage.setItem('users', JSON.stringify(updatedUsers));
-        
-        loadUsers();
-        showToast('Usuario eliminado con éxito', 'success');
-      }
-      
-      function saveService() {
-        let licensePlate = document.getElementById('license-plate').value;
-        
-        if (licensePlate === 'new') {
-          licensePlate = document.getElementById('new-license-plate').value;
-          if (!licensePlate) {
-            showToast('Por favor ingrese la placa del vehículo', 'error');
-            return;
-          }
-        }
-        
-        const pilotName = document.getElementById('pilot-name').value;
-        const serviceDate = document.getElementById('service-date').value;
-        const currentKm = document.getElementById('current-km').value;
-        const nextServiceKm = document.getElementById('next-service-km').value;
-        const observations = document.getElementById('service-observations').value;
-        
-        // Validation
-        if (!licensePlate || !pilotName || !serviceDate || !currentKm || !nextServiceKm) {
-          showToast('Por favor complete todos los campos obligatorios', 'error');
-          return;
-        }
-        
-        if (parseInt(currentKm) >= parseInt(nextServiceKm)) {
-          showToast('El kilometraje del próximo servicio debe ser mayor al actual', 'warning');
-          return;
-        }
-        
-        // Create service record
-        const service = {
-          id: Date.now().toString(),
-          licensePlate: licensePlate,
-          pilotName: pilotName,
-          serviceDate: serviceDate,
-          currentKm: currentKm,
-          nextServiceKm: nextServiceKm,
-          observations: observations,
-          createdAt: new Date().toISOString()
-        };
-        
-        // Save service
-        const services = JSON.parse(localStorage.getItem('services') || '[]');
-        services.push(service);
-        localStorage.setItem('services', JSON.stringify(services));
-        
-        // Update or create vehicle
-        const vehicles = JSON.parse(localStorage.getItem('vehicles') || '[]');
-        const vehicleIndex = vehicles.findIndex(v => v.licensePlate === licensePlate);
-        
-        if (vehicleIndex !== -1) {
-          // Update existing vehicle
-          vehicles[vehicleIndex].currentKm = currentKm;
-          vehicles[vehicleIndex].nextServiceKm = nextServiceKm;
-          vehicles[vehicleIndex].pilotName = pilotName;
-          vehicles[vehicleIndex].lastUpdated = new Date().toISOString();
-        } else {
-          // Create new vehicle
-          vehicles.push({
-            licensePlate: licensePlate,
-            pilotName: pilotName,
-            currentKm: currentKm,
-            nextServiceKm: nextServiceKm,
-            lastUpdated: new Date().toISOString()
-          });
-        }
-        
-        localStorage.setItem('vehicles', JSON.stringify(vehicles));
-        
-        // Show success and return to dashboard
-        showToast('Servicio registrado con éxito', 'success');
-        switchPage('dashboard');
-        document.querySelector('.menu-item[data-page="dashboard"]').classList.add('active');
-        document.querySelector('.menu-item[data-page="service"]').classList.remove('active');
-      }
-      
-      function saveChecklist() {
-        const licensePlate = document.getElementById('checklist-license-plate').value;
-        const checklistDate = document.getElementById('checklist-date').value;
-        
-        // Validation
-        if (!licensePlate || !checklistDate) {
-          showToast('Por favor seleccione la placa y la fecha', 'error');
-          return;
-        }
-        
-        // Get signature
-        let signatureData = '';
-        if (signaturePad && !signaturePad.isEmpty()) {
-          signatureData = signaturePad.toDataURL();
-        } else {
-          showToast('Por favor firme la inspección', 'error');
-          return;
-        }
-        
-        // Collect checklist items
-        const items = [];
-        document.querySelectorAll('#checklist-items tr').forEach((row, index) => {
-          const goodCheckbox = row.querySelector(`.custom-checkbox[data-status="good"]`);
-          const badCheckbox = row.querySelector(`.custom-checkbox[data-status="bad"]`);
-          const naCheckbox = row.querySelector(`.custom-checkbox[data-status="na"]`);
-          const observation = row.querySelector('input[type="text"]').value;
-          
-          let status = 'unchecked';
-          if (goodCheckbox.classList.contains('checked')) status = 'good';
-          else if (badCheckbox.classList.contains('checked')) status = 'bad';
-          else if (naCheckbox.classList.contains('checked')) status = 'na';
-          
-          items.push({
-            item: document.querySelectorAll('#checklist-items tr')[index].cells[0].textContent,
-            status: status,
-            observation: observation
-          });
-        });
-        
-        // Create checklist record
-        const checklist = {
-          id: Date.now().toString(),
-          licensePlate: licensePlate,
-          date: checklistDate,
-          items: items,
-          signature: signatureData,
-          createdAt: new Date().toISOString()
-        };
-        
-        // Save checklist
-        const checklists = JSON.parse(localStorage.getItem('checklists') || '[]');
-        checklists.push(checklist);
-        localStorage.setItem('checklists', JSON.stringify(checklists));
-        
-        // Show success and return to dashboard
-        showToast('Inspección guardada con éxito', 'success');
-        switchPage('dashboard');
-        document.querySelector('.menu-item[data-page="dashboard"]').classList.add('active');
-        document.querySelector('.menu-item[data-page="checklist"]').classList.remove('active');
-      }
-      
-      // Toast notification function
-      function showToast(message, type = 'success') {
-        const toast = document.getElementById('toast');
-        const icon = document.getElementById('toast-icon');
-        const messageElement = document.getElementById('toast-message');
-        
-        // Set icon and color based on type
-        if (type === 'success') {
-          toast.className = 'fixed bottom-4 right-4 px-4 py-2 rounded-lg shadow-lg bg-green-500 text-white flex items-center animate__animated animate__fadeInUp z-50';
-          icon.className = 'fas fa-check-circle mr-2';
-        } else if (type === 'error') {
-          toast.className = 'fixed bottom-4 right-4 px-4 py-2 rounded-lg shadow-lg bg-red-500 text-white flex items-center animate__animated animate__fadeInUp z-50';
-          icon.className = 'fas fa-times-circle mr-2';
-        } else if (type === 'warning') {
-          toast.className = 'fixed bottom-4 right-4 px-4 py-2 rounded-lg shadow-lg bg-yellow-500 text-white flex items-center animate__animated animate__fadeInUp z-50';
-          icon.className = 'fas fa-exclamation-circle mr-2';
-        } else if (type === 'info') {
-          toast.className = 'fixed bottom-4 right-4 px-4 py-2 rounded-lg shadow-lg bg-blue-500 text-white flex items-center animate__animated animate__fadeInUp z-50';
-          icon.className = 'fas fa-info-circle mr-2';
-        }
-        
-        messageElement.textContent = message;
-        toast.classList.remove('hidden');
-        
-        // Hide after 3 seconds
-        setTimeout(() => {
-          toast.classList.add('animate__fadeOutDown');
-          setTimeout(() => {
-            toast.classList.add('hidden');
-            toast.classList.remove('animate__fadeOutDown');
-          }, 300);
-        }, 3000);
-      }
-    });
-  </script>
 </body>
 </html>
